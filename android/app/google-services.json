@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "418967897304",
+    "firebase_url": "https://coinbaazar-ab71a.firebaseio.com",
+    "project_id": "coinbaazar-ab71a",
+    "storage_bucket": "coinbaazar-ab71a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:418967897304:android:b09edb50032673e65b03ad",
+        "android_client_info": {
+          "package_name": "com.coinbaazar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "418967897304-5i3t1uklpturf5ldbvsi7v5k41evdn5m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.coinbaazar",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "418967897304-39r458km2qj8fnfdacj742cm7hss17t1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlmdbC2p4fjajqWVgLrjkSpvX6Cg6v3eI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "418967897304-39r458km2qj8fnfdacj742cm7hss17t1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
