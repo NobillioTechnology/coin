@@ -12,7 +12,10 @@ export default class Header extends Component {
   }
 
   jumpToBack(){
-    this.props.data.navigation.goBack()
+    if(this.props.handleBack!=undefined)
+      this.props.handleBack();
+    else
+      this.props.data.navigation.goBack(null);
   // alert('hello')
   }
 

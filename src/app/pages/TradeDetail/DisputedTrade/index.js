@@ -149,14 +149,15 @@ export default class Home extends Component {
                     renderItem={ ({item}) =>
                         <View>
                          <Adapter
-                            id={item.uniqueId}
+                            id={item._id}
+                            uniqueId={item.addUniqueId}
                             role={this.state.role}
                             username={item.advertisement_owner_name}
                             flat={item.currency_type}
                             fee={item.transactionFee}
                             btc={this.refineBtc(parseFloat(item.amount_of_cryptocurrency).toFixed(8))}
                             amount={item.amount_in_currency}
-                            bitcoin={this.refineBtc(parseFloat(item.exchangeRate).toFixed(8))}
+                            bitcoin={this.refineBtc(parseFloat(item.exchangeRate).toFixed(2))}
                             time={item.createdAt.substring(11,16)+', '+item.createdAt.substring(0,10)}
                             openTrade={item.openTrade}
                           />

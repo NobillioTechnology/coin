@@ -149,7 +149,7 @@ class Adapter extends Component {
                                     </View>
                                     <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
                                         <Text style={[css.itemlebal, {flex:0.4}]}>Trade ID:</Text>
-                                        <Text style={[css.boldText, {flex:0.6}]}>{this.props.id}</Text>
+                                        <Text style={[css.boldText, {flex:0.6}]}>{this.props.uniqueId}</Text>
                                     </View>
                                     <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
                                         <Text style={[css.itemlebal, {flex:0.4}]}>Trade Amount:</Text>

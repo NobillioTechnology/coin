@@ -78,7 +78,7 @@ export default class Home extends Component {
      this.getWalletAddress();
 
       
-        // alert(JSON.stringify(FCMToken));
+        alert(JSON.stringify(FCMToken));
         console.log('FCM TOKEN====>', FCMToken);
   }
 

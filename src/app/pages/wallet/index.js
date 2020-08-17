@@ -190,7 +190,8 @@ export default class Wallet extends Component {
                           type={type}
                           time={date+', '+time}
                           refresh={this.getAllTrade}
-                          toAddress={toAddress}
+                          // toAddress={toAddress}
+                          transactionId={''}
                         />
                     )
                   })}

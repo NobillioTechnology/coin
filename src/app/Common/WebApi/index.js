@@ -93,12 +93,29 @@ export default class WebApi extends Component {
 		return fetch(baseUrl+user+url, {
 			method:'GET',
 	 	    headers: {
-		    Accept: 'application/json',
-		    'Content-Type': 'application/json',
-		  	token:token,
-		  	id:_id,
-		  	_id:_id
-		  }
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				token:token,
+				id:_id,
+				_id:_id
+			}
+		})
+	}
+
+	static postApi_escrow=async(url, body)=>{
+		console.log(url , body);
+		const token= await AsyncStorage.getItem(Utils.token);
+		const _id = await AsyncStorage.getItem(Utils._id);
+		return fetch(baseUrl+user+url, {
+			method:'POST',
+	 	    headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				token:token,
+				id:_id,
+				_id:_id
+			},
+			body:body
 		})
 	}
 

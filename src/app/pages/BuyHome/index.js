@@ -394,7 +394,7 @@ export default class Home extends Component {
                 </View>
 
                 {this.state.role=='Buy' && (
-                  <View style={{marginBottom:35}}>
+                  <View style={{flex:1}}>
                       <FlatList
                         data={ this.state.dataSource}
                         renderItem={ ({item}) =>

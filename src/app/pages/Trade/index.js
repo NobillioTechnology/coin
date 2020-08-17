@@ -78,6 +78,8 @@ export default class Home extends Component {
                      console.log('time now===>', timeRemains);
                         if(json.responseCode==200){
                           if(json.result[0].userBond==true){
+                            if(timeRemains>0)
+                              this.setState({timerState:false});
                             this.setState({retrive:true, transfer:false, time:timeRemains});
                             this.startTimer(this.state.time);
                             if(json.result[0].retrieveBondMoney==true){
@@ -134,23 +136,9 @@ export default class Home extends Component {
     transferBonds=async()=>{
       this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Transfering...'});
       const body = JSON.stringify({userId:this.state._id});
-       await WebApi.postApi_trade('tranferBondAmountToEscrow', body)
-           .then(response => response.json())
-                .then(json => {
-                  //  this.setState({loading:false});
-                     console.log('Response from transfer bonds===>', json);
-                        if(json.responseCode==200){
-                          this.setState({bonds:json.result});
-                          this.getBonds();
-                        }else{
-                          this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
-                        }
-                    })
-                    .catch(error => {
-                         console.log('error==>' , error)
-                         this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Something Went Wrong! Please contact to Admin'});
-                    });
-    }
+       WebApi.postApi_trade('tranferBondAmountToEscrow', body)
+       this.getBonds();
+      }
 
     retrive=async()=>{
       this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Retriving...'});
@@ -196,7 +184,7 @@ export default class Home extends Component {
           <View style={Styles.container}>
             <View style={Styles.head}>
               <Text style={[Styles.heading,{fontSize:Utils.textSize}]}>Trade Dashboard</Text>
-              <Icon name="chevron-down" style={Styles.rightIcon}/>
+              <Icon name="chevron-down" style={Styles.rightIcon} onPress={()=>this.transferBonds()}/>
             </View>
             <View style={Styles.detailBody}>
               <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('OpenTrade', {'transfer':!this.state.transfer})}>

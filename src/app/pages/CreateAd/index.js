@@ -340,10 +340,10 @@ export default class Home extends Component {
     if(this.state.minTxn!==0 && this.state.validMinTxn){
       if(this.state.maxTxn!==0 && this.state.validMaxTxn){
         if(this.state.tt!='' && this.state.validTt){
-          if(this.state.time!==0 && this.state.validTime){
+          if(this.state.time>=30 && this.state.validTime){
             this.submitAd();
           }else
-          this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Enter set valid Payment Window!', validTime:false});
+          this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Enter valid set Payment Window!', validTime:false});
         }else
         this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Please enter Terms of trade.', validTt:false});
       }else

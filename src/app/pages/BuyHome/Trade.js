@@ -19,7 +19,7 @@ export default class BuyTrade extends Component {
     super(props);
       this.state={
         tradeId:'',
-        _id:'', userName:'',
+        _id:'', myName:'',
         role:'',
         loading:false,
         loadingTitle:'Please Wait',
@@ -38,7 +38,7 @@ export default class BuyTrade extends Component {
      const tradeId = this.props.navigation.getParam('id', '1');
      const _id = await AsyncStorage.getItem(Utils._id);
      const userName = await AsyncStorage.getItem(Utils.userName);
-     this.setState({tradeId:tradeId, _id:_id, userName:userName});
+     this.setState({tradeId:tradeId, _id:_id, myName:userName});
      this.getTrade(tradeId);
    }
 
@@ -138,8 +138,8 @@ export default class BuyTrade extends Component {
                             // receiverId: this.state.receiverId.toString(),
                             receiverId: [json.addOwnerId],
                             senderId: this.state._id.toString(),
-                            senderName:this.state.userName,
-                            message: "Buy trade request from " + `${this.state.userName}`,
+                            senderName:json.result.trade_owner_name,
+                            message: "Buy trade request from " + json.result.trade_owner_name,
                             tradeId: json.result._id,
                             image: null,
                             notificationType: "chat",

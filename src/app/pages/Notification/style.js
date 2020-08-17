@@ -3,8 +3,7 @@ import Utils from '../Utils';
 
 export default StyleSheet.create({
 body:{
-	flex:1, 
-	backgroundColor:Utils.colorWhite
+	flex:1,
 },
 header:{
 	flex:0.1

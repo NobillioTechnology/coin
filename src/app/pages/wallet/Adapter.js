@@ -31,20 +31,22 @@ class Adapter extends Component {
                                         )}
                                         <Text style={[css.boldText, {flex:0.6}]}>{this.props.amount}</Text>
                                     </View>
-                                    {this.props.type=='s' && (
+                                    {/* {this.props.type=='s' && (
                                         <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
                                             <Text style={[css.itemlebal, {flex:0.4}]}>To:</Text>
                                             <Text style={[css.boldText, {flex:0.6}]}>{this.props.toAddress}</Text>
                                         </View>
-                                    )}
+                                    )} */}
+                                    {this.props.transactionId.length>5 && (
                                     <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
                                         <Text style={[css.itemlebal, {flex:0.4}]}>Transaction Id:</Text>
                                         <Text style={[css.boldText, {flex:0.4}]}>{this.props.transactionId}</Text>
                                     </View>
-                                    <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
+                                    )}
+                                    {/* <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
                                         <Text style={[css.itemlebal, {flex:0.4}]}>Description:</Text>
                                         <Text style={[css.boldText, {flex:0.6}]}>{this.props.desc}</Text>
-                                    </View>
+                                    </View> */}
                                    
                                 </View>
                         </TouchableHighlight>

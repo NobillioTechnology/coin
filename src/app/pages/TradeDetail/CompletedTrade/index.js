@@ -156,8 +156,9 @@ export default class CompletedTrade extends Component {
                         <Adapter
                           role='completed'
                           username={item.trade_owner_name}
-                          bitcoin={this.refineBtc(parseFloat(item.exchangeRate).toFixed(8))}
+                          bitcoin={this.refineBtc(parseFloat(item.exchangeRate).toFixed(2))}
                           id={item._id}
+                          uniqueId={item.addUniqueId}
                           amount={item.amount_in_currency}
                           btc={parseFloat(item.amount_of_cryptocurrency).toFixed(8)}
                           fee={parseFloat(item.transactionFee).toFixed(8)}

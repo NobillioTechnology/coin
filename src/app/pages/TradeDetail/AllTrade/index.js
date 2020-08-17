@@ -28,7 +28,6 @@ export default class Home extends Component {
         dataSource:[], page:1, 
         _id:'',
       }
-
         this.openTrade=this.openTrade.bind(this);
         this.stopLoading=this.stopLoading.bind(this);
    }
@@ -36,8 +35,13 @@ export default class Home extends Component {
 
    componentDidMount=async()=>{
      const id = await AsyncStorage.getItem(Utils._id);
-      this.setState({_id:id});
+      this.setState({_id:id, page:1});
        this.getAllTrade(this.state.page);
+   }
+
+   componentWillReceiveProps(){
+    if(this.props.navigation.getParam('refresh', true)==true)
+        this.getAllTrade(this.state.page);
    }
 
   stopLoading(){
@@ -120,7 +124,7 @@ export default class Home extends Component {
 
 
    openTrade(tradeId){
-     this.props.navigation.navigate('SingleTrade', {tradeId:tradeId});
+     this.props.navigation.navigate('SingleTrade', {tradeId:tradeId, 'from':'all'});
    }
 
    refineBtc(btc){
@@ -156,7 +160,7 @@ export default class Home extends Component {
                           <Adapter
                             role={this.state.role}
                             username={item.advertisement_owner_name}
-                            bitcoin={this.refineBtc(parseFloat(item.exchangeRate).toFixed(8))}
+                            bitcoin={this.refineBtc(parseFloat(item.exchangeRate).toFixed(2))}
                             id={item.uniqueId}
                             tradeId={item._id}
                             amount={item.amount_in_currency}

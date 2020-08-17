@@ -16,6 +16,12 @@ export default StyleSheet.create({
 	container:{
 		width:'100%',
 	},
+	dialogueContainerImage:{
+		width:'100%',
+		height:'100%',
+		alignItems:'center',
+		justifyContent:'flex-end'
+	},
 	shadow:{
 			shadowColor: Utils.colorPrimary,
 			shadowOffset: {
@@ -154,7 +160,6 @@ export default StyleSheet.create({
 	},
 	myMessage:{
 		alignSelf:'flex-end',
-		height:40,
 		backgroundColor:Utils.colorHintGreen,
 		padding:10,
 		marginRight:20,
@@ -162,7 +167,6 @@ export default StyleSheet.create({
 		borderRadius:5
 	},
 	otherMessage:{
-		height:40,
 		backgroundColor:Utils.colorHintGray,
 		padding:10,
 		marginLeft:20,

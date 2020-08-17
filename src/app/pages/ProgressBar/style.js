@@ -4,25 +4,20 @@ import Utils from '../Utils';
 export default StyleSheet.create({
 
 itemBody:{
-
 },
 dialogue:{
-		alignSelf:'center',
 		justifyContent:'center',
 		backgroundColor:'#00000088',
-		width:'100%',
-		height:'100%',
 		alignItems:'center',
-		flex:1
+		flex:1,
 	},
 	dialogueContainer:{
 		width:'90%',
 		backgroundColor : Utils.colorWhite,
-		borderWidth: 1,
+		borderWidth:1,
 		borderColor:Utils.colorGreen,
 		borderRadius:17,
-		height:'auto',
-		minHeight:'25%'
+		minHeight:'25%',
 	},
 	dialogTitle:{
 		color:Utils.colorBlack,

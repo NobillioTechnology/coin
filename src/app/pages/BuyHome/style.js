@@ -13,7 +13,7 @@ export default StyleSheet.create({
 	},
 	container:{
 		width:'100%',
-		flex:0.75
+		flex:1
 	},
 	shadow:{
 			shadowColor: Utils.colorPrimary,

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  Text, View, TextInput, ScrollView, TouchableHighlight, BackHandler, Modal, Dimensions, ActivityIndicator,
+  Text, View, TextInput, Image, ScrollView, TouchableHighlight, BackHandler, Modal, Dimensions, ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Styles from './style'
@@ -15,6 +15,8 @@ import RadioForm from 'react-native-simple-radio-button';
 import HTML from 'react-native-render-html';
 import ImagePicker from 'react-native-image-picker';
 
+const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 
 var radio_props = [
   {label: 'Incorrect trade amount', value: 'Incorrect trade amount' },
@@ -42,9 +44,11 @@ export default class SingleTrade extends Component {
         loadingMessage:"Loading...",
         uniqueTradeId:'', selling:'', amount:'', currency:'', adId:'', paymentMethod:'', exchangeRate:'', tradeStatus:'', disputReason:'',
         remainingTime:0, ad_id:'', paidStatus:false, tradeOwner:'', myName:'', terms:'', shownTerms:false,
-        paymentButtonLine:'I have paid', sellerId:'', tradeType:'', receiverId:'', chats:[],
+        sellerId:'', tradeType:'', receiverId:'', chats:[],
         cancelModal:false, reason:'Incorrect trade amount', customReason:false, validCustomReason:true, dispute:false,
         fileData:'',fileName:'Upload', selectImage:false, reasonD:false, disputeReason:'', validDisputReason:true,
+        imageMode:false,
+        paidButton:true,
       }
       this.startTimer=this.startTimer.bind(this);
       this.stopLoading=this.stopLoading.bind(this);
@@ -112,8 +116,13 @@ export default class SingleTrade extends Component {
    }
 
    handleBack(){
-     this.props.navigation.goBack(null);
-     return true;
+     if(this.props.navigation.getParam('from')=='all'){
+        this.props.navigation.replace('AllTrade', {'refresh':true});
+        return true;
+     }else{
+       this.props.navigation.goBack(null);
+       return true;
+     }
    }
 
    stopLoading(){
@@ -130,7 +139,7 @@ export default class SingleTrade extends Component {
       await WebApi.postApi_trade('chatHistory', body)
       .then(response => response.json())
       .then(json => {
-           // console.log('Response from chat History===>', json);
+           console.log('Response from chat History===>', json);
               if(json.responseCode==200){
                 this.setState({chats:json.result});
               }else{
@@ -141,7 +150,7 @@ export default class SingleTrade extends Component {
         console.log('error==>' , error)
         this.setState({loading:true,
                       loadingTitle:'Alert',
-                      loadingMessage:'Oops! '+error,
+                      loadingMessage:'Oops! Internal Server Error!',
             })
       })
     }
@@ -193,7 +202,7 @@ export default class SingleTrade extends Component {
           .then(response => response.json())
             .then(json => {
                this.setState({loading:false});
-                 console.log('Response from tradeDetails===>', json);
+                //  console.log('Response from tradeDetails===>', json.result);
                     if(json.responseCode==200){
                         if(json.result!==null){
                           var selling = json.result.amount_of_cryptocurrency;
@@ -219,7 +228,8 @@ export default class SingleTrade extends Component {
                             tradeType:json.result.trade_type,
                             disputReason:json.result.disputeReason,
                           });
-                          this.startTimer(this.state.remainingTime);
+                          if(parseInt(json.result.remainingPaymentTime)>0)
+                              this.startTimer(this.state.remainingTime);
                         }
                     }else{
                       this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
@@ -229,7 +239,7 @@ export default class SingleTrade extends Component {
             console.log('error==>' , error)
             this.setState({loading:true,
                           loadingTitle:'Alert',
-                          loadingMessage:'Oops! '+error,
+                          loadingMessage:'Oops! Internal Server Error!',
                 })
           });
          await WebApi.getApi_trade('detail_trade/'+this.state.ad_id)
@@ -248,18 +258,14 @@ export default class SingleTrade extends Component {
             console.log('error==>' , error)
             this.setState({loading:true,
                           loadingTitle:'Alert',
-                          loadingMessage:'Oops! '+error,
+                          loadingMessage:'Oops! Internal Server Error!',
                 })
           });
         }
 
    havePaid=async()=>{
-
-     if(this.state.paymentButtonLine=='Release BTC'){
-         this.releaseBTC();
-         return;
-        }
-         this.setState({loading:true});
+      if(this.state.paidButton){
+         this.setState({loading:true, paidButton:false});
          const body = JSON.stringify({
                      advertisementId:this.state.ad_id,
                      notificationType:'ihavepaid',
@@ -271,7 +277,7 @@ export default class SingleTrade extends Component {
          await WebApi.postApi_trade('iHavePaidTrade', body)
           .then(response => response.json())
             .then(json => {
-               this.setState({loading:false});
+               this.setState({paidButton:true});
                  console.log('Response from havePaid===>', json);
                     if(json.responseCode==200){
                         // console.log('Modified json=====>', json.result)
@@ -313,18 +319,17 @@ export default class SingleTrade extends Component {
                   console.log('error==>' , error)
                   this.setState({loading:true,
                                 loadingTitle:'Alert',
-                                loadingMessage:'Oops! '+error,
+                                loadingMessage:'Oops! Internal Server Error!',
                       })
-          });
+                 });
+        }
    }
 
    releaseBTC(){
-     if(this.state.paidStatus==false)
-         this.setState({loading:true, loadingTitle:'Alert', loadingMessage:"Buyer's did not confirm any payment"});
-      else{
        this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Releasing...'});
+       console.log('trade id====>', this.state.ad_id);
         var body = JSON.stringify({
-            "tradeId": this.state.ad_id,
+            "tradeId": this.state.tradeId,
             "received_status": "true",
             "request_status": "Complete",
             "status": "COMPLETE"
@@ -332,39 +337,22 @@ export default class SingleTrade extends Component {
         WebApi.postApi_trade('paymentReceived', body)
           .then(response => response.json())
             .then(json => {
-               this.setState({loading:false});
-                 // console.log('Response from releaseBTC===>', json);
+              //  this.setState({loading:false});
+                 console.log('Response from releaseBTC===>', json);
                     if(json.responseCode==200){
                         // console.log('Modified json=====>', json.result)
                         if(json.result!==null){
-                          this.setState({
-                            timer:json.result.payment_window_time,
-                            uniqueTradeId:json.result.uniqueId,
-                            selling:json.result.amount_of_cryptocurrency,
-                            amount:json.result.amount_in_currency,
-                            currency:json.result.currency_type,
-                            adId:json.result.addUniqueId,
-                            paymentMethod:json.result.payment_method,
-                            exchangeRate:json.result.exchangeRate,
-                            tradeStatus:json.result.status,
-                            remainingTime:json.result.remainingPaymentTime,
-                            ad_id:json.result.advertisement_id,
-                            paidStatus:json.result.paid_status,
-                            tradeOwner:json.result.advertisement_owner_name,
-                            myName:json.result.trade_owner_name
-                          });
-                          this.startTimer(this.state.remainingTime);
                           socket.emit('sendMessage', {
-                            // receiverId: this.state.receiverId.toString(),
                             receiverId: [`${this.state.receiverId}`],
                             senderId: this.state._id.toString(),
-                            message: "BTC is released from " + this.state.myName,
+                            message: "BTC is released from " + this.state.tradeOwner,
                             tradeId: this.state.tradeId,
                             image: null,
                             notificationType: "",
                             senderName:this.state.myName,
                             type: "GROUP"
-                        })
+                        });
+                        // this.getTradeDetails(this.tradeId);
                         }
                     }else{
                       this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
@@ -374,17 +362,14 @@ export default class SingleTrade extends Component {
                   console.log('error==>' , error)
                   this.setState({loading:true,
                                 loadingTitle:'Alert',
-                                loadingMessage:'Oops! '+error,
+                                loadingMessage:'Oops! Internal Server Error!',
                       })
           });
-
-
-      }
-   }
+    }
 
   cancelTrade=async()=>{
-    if(this.state.reason!='' && this.state.validCustomReason){
-        this.setState({cancelModal:false, loading:true, loadingTitle:'Please Wait', loadingMessage:'Cancelling...'});
+    if(this.state.paidButton){
+        this.setState({paidButton:false, cancelModal:false, loading:true, loadingTitle:'Please Wait', loadingMessage:'Cancelling...'});
         const body = JSON.stringify({
                       advertisementId:this.ad_id,
                       reason:this.state.reason,
@@ -393,24 +378,24 @@ export default class SingleTrade extends Component {
         await WebApi.postApi_trade('cancelTrade', body)
         .then(response => response.json())
             .then(json => {
-               this.setState({loading:false});
+               this.setState({paidButton:true});
                  console.log('Response from havePaid===>', json);
                     if(json.responseCode==200){
                         // console.log('Modified json=====>', json.result)
                         if(json.result!==null){
                           this.getTradeDetails(this.state.tradeId);
                           socket.emit('sendMessage', {
-                            // receiverId: this.state.receiverId.toString(),
-                            receiverId: [`${this.state.receiverId}`],
+                            receiverId: this.state.receiverId.toString(),
+                            // receiverId: [`${this.state.receiverId}`],
                             senderId: this.state._id.toString(),
-                            message: 'Trade is cancelled from ' + this.state.myName+' '+this.state.reason,
-                            tradeId: this.state.trade_id,
+                            message: 'Trade is cancelled from ' + this.state.myName,
+                            tradeId: this.state.tradeId,
                             image: null,
                             notificationType: "",
                             senderName:this.state.myName,
                             type: "GROUP"
                         });
-                        this.props.navigation.goBack(null);
+                        // this.props.navigation.goBack(null);
                         }
                     }else{
                       this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
@@ -420,7 +405,7 @@ export default class SingleTrade extends Component {
                   console.log('error==>' , error)
                   this.setState({loading:true,
                                 loadingTitle:'Alert',
-                                loadingMessage:'Oops! '+error,
+                                loadingMessage:'Oops! Internal Server Error!',
                       });
                 })
     }else
@@ -434,7 +419,7 @@ export default class SingleTrade extends Component {
    }
    onTimeOut(){
     this.setState({timerState:false});
-    // this.getTradeDetails(this.state.tradeId);
+    this.getTradeDetails(this.state.tradeId);
     if(this.state.paidStatus)
       this.setState({dispute:true});
    }
@@ -476,8 +461,8 @@ export default class SingleTrade extends Component {
   }
 
   dispute=async()=>{
-    if(this.state.disputeReason!=''){
-      this.setState({reasonD:false, loading:true, loadingTitle:'Please Wait', loadingMessage:'Disputing...'});
+    if(this.state.disputeReason!='' && this.state.paidButton){
+      this.setState({paidButton:false, reasonD:false, loading:true, loadingTitle:'Please Wait', loadingMessage:'Disputing...'});
       const body = JSON.stringify({
         disputeReason:this.state.disputeReason,
         dispute_status:'true',
@@ -489,7 +474,7 @@ export default class SingleTrade extends Component {
         await WebApi.postApi_trade('disputeTrade', body)
         .then(response => response.json())
         .then(json => {
-        this.setState({loading:false});
+        this.setState({paidButton:true});
           console.log('Response from dispute===>', json);
           if(json.responseCode==200){
                   // console.log('Modified json=====>', json.result)
@@ -497,14 +482,15 @@ export default class SingleTrade extends Component {
                     // receiverId: this.state.receiverId.toString(),
                     receiverId: [`${this.state.receiverId}`],
                     senderId: this.state._id.toString(),
-                    message: 'Trade is Disputed from ' + this.state.myName+' '+this.state.reason,
-                    tradeId: this.state.trade_id,
+                    message: 'Trade is disputed from ' + this.state.myName+' '+this.state.disputeReason,
+                    tradeId: this.state.tradeId,
                     image: null,
                     notificationType: "",
                     senderName:this.state.myName,
                     type: "GROUP"
                 });
-                    this.getTradeDetails(this.state.tradeId);
+                    this.assignToAdmin(this.tradeId);
+                    // this.getTradeDetails(this.state.tradeId);
               }else{
                 this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
               }
@@ -513,7 +499,7 @@ export default class SingleTrade extends Component {
             console.log('error==>' , error)
             this.setState({loading:true,
                           loadingTitle:'Alert',
-                          loadingMessage:'Oops! '+error,
+                          loadingMessage:'Oops! Internal Server Error!',
                 });
           })
 
@@ -521,18 +507,23 @@ export default class SingleTrade extends Component {
       this.setState({validDisputReason:false});
   }
 
+  assignToAdmin=async(id)=>{
+    const body = JSON.stringify({tradeId:id});
+    await WebApi.postApi_escrow('assignTradeToManager', body);
+  }
+
   render() {
 
     return (
       <View style={Styles.body}>
-       <Header title={this.state.title} menuCheck="false" data={this.props} style={Styles.header}/>
+       <Header title={this.state.title} menuCheck="false" data={this.props} style={Styles.header} handleBack={this.handleBack}/>
        <ProgressBar
             title={this.state.loadingTitle}
             message={this.state.loadingMessage}
             visible={this.state.loading}
             close={this.stopLoading}
           />
-        <ScrollView style={{flex:0.8}} keyboardShouldPersistTaps={'always'}>
+        <ScrollView style={{flex:1}} keyboardShouldPersistTaps={'always'}>
           <View style={Styles.container}>
             <View style={{marginBottom:15, backgroundColor:Utils.colorWhite}}>
               <Text style={[Styles.heading, {alignSelf:'center', width:'90%'}]}>Trade ID {this.state.uniqueTradeId} :Selling {this.state.selling} bitcoins for {this.state.amount} {this.state.currency}</Text>
@@ -591,9 +582,11 @@ export default class SingleTrade extends Component {
                                       <View>
                                       {this.state._id==this.state.sellerId ? (
                                         <View>
+                                          <TouchableHighlight underlayColor='none' onPress={()=>this.releaseBTC()}>
                                             <View style={[Styles.borderView, Styles.buttonGreen]}>
                                              <Text style={Styles.buttonGreen}>Release BTC</Text>
                                             </View>
+                                          </TouchableHighlight>
                                             {this.state.dispute && (
                                             <View style={{marginTop:0}}>
                                               <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>You can report a dispute if you think your trade partner is not paying you or replying you. Some payment methods might take several days to confirm payment. Please open dispute if you have made the payment and there is an issue from your partner.</Text>
@@ -630,29 +623,42 @@ export default class SingleTrade extends Component {
                                           </View>
                                         </TouchableHighlight>
                                        ):(
+                                         <View>
                                          <TouchableHighlight underlayColor='none' onPress={()=>this.havePaid()}>
                                             <View style={[Styles.borderView, Styles.buttonGreen]}>
                                               <Text style={Styles.buttonGreen}>I have paid</Text>
                                             </View>
                                           </TouchableHighlight>
+                                          <View style={[Styles.itemBody, {marginTop:10, marginBottom:10}]}>
+                                              <Text style={[Styles.heading, {marginTop:20}]}>Having Trading issue?</Text>
+                                              <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>You can always cancel the trade if it was started by mistake, or if you dont meet the requirements mentioned in the trade instructions.</Text>
+                                            
+                                              <TouchableHighlight style={[Styles.borderView, Styles.buttonRed, {backgroundColor:Utils.colorRed}]} onPress={()=>this.cancelTrade()}>
+                                                <Text style={[Styles.buttonRed, {}]}>Cancel Trade</Text>
+                                              </TouchableHighlight>
+                                            </View>
+                                          </View>
                                         )}
+                                        
                                     </View>
                                     ):(
                                       <View style={{}}>
                                      {this.state._id!=this.state.buyerId ? (
                                         <View>
-                                          <View style={[Styles.borderView, Styles.buttonGreen]}>
-                                            <Text style={{}}>Release BTC</Text>
-                                          </View>
-                                          {this.state.dispute && (
+                                          <TouchableHighlight underlayColor='none' onPress={()=>this.releaseBTC()}>
+                                            <View style={[Styles.borderView, Styles.buttonGreen]}>
+                                              <Text style={{}}>Release BTC</Text>
+                                            </View>
+                                          </TouchableHighlight>
+                                          {!this.state.timerState && (
                                               <View style={{marginTop:0}}>
                                                 <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>You can report a dispute if you think your trade partner is not paying you or replying you. Some payment methods might take several days to confirm payment. Please open dispute if you have made the payment and there is an issue from your partner.</Text>
                                                 <TouchableHighlight style={[Styles.borderView, Styles.buttonRed]} underlayColor='none' onPress={()=>this.setState({reasonD:true})}>
                                                   <Text style={{color:Utils.colorWhite}}>Dispute</Text>
                                                 </TouchableHighlight>
                                               </View>
-                                            )}
-                                      </View>
+                                          )}
+                                         </View>
                                        ):(
                                         <View>
                                           {this.state.dispute ? (
@@ -664,6 +670,14 @@ export default class SingleTrade extends Component {
                                               <Text style={Styles.buttonGreen}>Paid</Text>
                                             </View>
                                           )}
+                                            <View style={[Styles.itemBody, {marginTop:10, marginBottom:10}]}>
+                                              <Text style={[Styles.heading, {marginTop:20}]}>Having Trading issue?</Text>
+                                              <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>You can always cancel the trade if it was started by mistake, or if you dont meet the requirements mentioned in the trade instructions.</Text>
+                                            
+                                              <TouchableHighlight style={[Styles.borderView, Styles.buttonRed, {backgroundColor:Utils.colorRed}]} onPress={()=>this.cancelTrade()}>
+                                                <Text style={[Styles.buttonRed, {}]}>Cancel Trade</Text>
+                                              </TouchableHighlight>
+                                            </View>
                                         </View>
                                         )}
                                       </View>
@@ -686,36 +700,75 @@ export default class SingleTrade extends Component {
                        </View>
                       )}
                 })()}
-                {this.state._id!=this.state.sellerId && (
+                {this.state.tradeStatus=='DISPUTE' && (
+                   <View style={[Styles.itemBody, {marginTop:10, marginBottom:10}]}>
+                      <Text style={[Styles.heading, {marginTop:20}]}>Payment Confirmation</Text>
+                      <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>Once you have made payment make sure you click on "I have paid" button. Otherwise the trade will get timed out and gets cancelled automatically and bitcoins will return to the vendor.</Text>
+                      <TouchableHighlight underlayColor='none'>
+                        <View style={[Styles.borderView, Styles.buttonRed,{backgroundColor:Utils.colorRed+33}]}>
+                          <Text style={[Styles.buttonRed,{backgroundColor:'', color:Utils.colorRed}]}>Trade Disputed</Text>
+                        </View>
+                      </TouchableHighlight>
+                  
+                         <View>
+                                {this.state._id==this.state.sellerId ? (
+                                  <View>
+                                    <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>Once you have made payment make sure you click on "I have paid" button. Otherwise the trade will get timed out and gets cancelled automatically and bitcoins will return to the vendor.</Text>
+                                    <TouchableHighlight underlayColor='none' onPress={()=>this.releaseBTC()}>
+                                      <View style={[Styles.borderView, Styles.buttonGreen]}>
+                                        <Text style={Styles.buttonGreen}>Release BTC</Text>
+                                      </View>
+                                    </TouchableHighlight>
+                                  </View>
+                                ):(
+                                  <View style={[Styles.itemBody, {marginTop:10, marginBottom:10}]}>
+                                    <Text style={[Styles.heading, {marginTop:20}]}>Having Trading issue?</Text>
+                                    <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>You can always cancel the trade if it was started by mistake, or if you dont meet the requirements mentioned in the trade instructions.</Text>
+                                  
+                                    <TouchableHighlight style={[Styles.borderView, Styles.buttonRed, {backgroundColor:Utils.colorRed}]} onPress={()=>this.cancelTrade()}>
+                                      <Text style={[Styles.buttonRed, {}]}>Cancel Trade</Text>
+                                    </TouchableHighlight>
+                                  </View>
+                                )}
+                           </View>
+
+                  </View>
+                )}
+                {this.state.tradeStatus=='COMPLETE' && (
+                   <View style={[Styles.itemBody, {marginTop:10, marginBottom:10}]}>
+                      <Text style={[Styles.heading, {marginTop:20}]}>Payment Confirmation</Text>
+                      <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>Once you have made payment make sure you click on "I have paid" button. Otherwise the trade will get timed out and gets cancelled automatically and bitcoins will return to the vendor.</Text>
+                      <TouchableHighlight underlayColor='none'>
+                        <View style={[Styles.borderView, Styles.buttonRed,{backgroundColor:Utils.colorBlue+33, borderColor:Utils.colorBlue}]}>
+                          <Text style={[Styles.buttonRed,{backgroundColor:'', color:Utils.colorBlue}]}>Trade COMPLETED</Text>
+                        </View>
+                      </TouchableHighlight>
+                  </View>
+                )}
+                {this.state.tradeStatus=='CANCEL' && (
                   <View style={[Styles.itemBody, {marginTop:10, marginBottom:10}]}>
                     <Text style={[Styles.heading, {marginTop:20}]}>Having Trading issue?</Text>
                     <Text style={[Styles.subHeading, {alignSelf:'center', width:'90%'}]}>You can always cancel the trade if it was started by mistake, or if you dont meet the requirements mentioned in the trade instructions.</Text>
-                    {this.state.tradeStatus==='CANCEL' ? (
-                    <TouchableHighlight style={[Styles.borderView, Styles.buttonRed]}>
-                      <Text style={Styles.buttonRed}>Trade cancelled</Text>
+                   
+                    <TouchableHighlight style={[Styles.borderView, Styles.buttonRed, {backgroundColor:Utils.colorRed+33}]}>
+                      <Text style={[Styles.buttonRed, {backgroundColor:'', color:Utils.colorRed}]}>Trade cancelled</Text>
                     </TouchableHighlight>
-                    ):(
-                    <TouchableHighlight style={[Styles.borderView, Styles.buttonGreen]}
-                      onPress={()=>this.setState({cancelModal:true})}
-                      underlayColor='none'
-                      >
-                      <Text style={Styles.buttonGreen}>Cancel the purchase</Text>
-                    </TouchableHighlight>
-                    )}
                   </View>
-                )}
+                  )}
                     <View style={[Styles.itemBody, {marginTop:10, marginBottom:20}]}>
                       <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
-                        <Text style={[Styles.heading, {flex:0.8, marginTop:-10}]}>Send message to {this.state.tradeOwner}</Text>
+                        <Text style={[Styles.heading, {flex:0.8, marginTop:-10}]}>Send message to {this.state._id==this.state.sellerId ? this.state.myName : this.state.tradeOwner}</Text>
                         <TouchableHighlight style={[Styles.borderView, Styles.submitButton, {borderWidth:0, width:'35%'}]}
                             onPress={()=>this.setState({shownTerms:true})}
                           >
                           <Text>Terms Of Trade</Text>
                         </TouchableHighlight>
                       </View>
-                      <ScrollView style={{height:250, zIndex:999}}
+                      <ScrollView style={{height:250}}
+                      nestedScrollEnabled={true}
                       ref={ref => {this.scrollView = ref}}
-                      onContentSizeChange={() => this.scrollView.scrollToEnd({animated: true})}>
+                      onContentSizeChange={() => this.scrollView.scrollToEnd({animated: true})}
+                      >
                         {this.state.chats.map((item)=>{
                               var time = new Date(item.time).toString();
                               var date = time.substring(4, 21);
@@ -732,14 +785,26 @@ export default class SingleTrade extends Component {
                               {item.senderId==this.state._id ? (
                                 <View>
                                   <View style={[Styles.myMessage]}>
+                                    {item.image!=undefined ? (
+                                      <TouchableHighlight onPress={()=>this.setState({imageMode:true, imageModeUri:item.image})}>
+                                        <Image source={{uri:item.image}} style={{width:width/4, height:width/4}}/>
+                                      </TouchableHighlight>
+                                    ):(
                                     <Text>{item.message}</Text>
+                                    )}
                                   </View>
                                   <Text style={Styles.myMessageTime}>{date}</Text>
                               </View>
                               ):(
                                 <View style={{flexWrap:'wrap'}}>
                                   <View style={[Styles.otherMessage]}>
+                                  {item.image!=undefined ? (
+                                    <TouchableHighlight onPress={()=>this.setState({imageMode:true, imageModeUri:item.image})}>
+                                      <Image source={{uri:item.image}} style={{width:width/4, height:width/4}}/>
+                                    </TouchableHighlight>
+                                    ):(
                                     <Text>{item.message}</Text>
+                                    )}
                                   </View>
                                   <Text style={Styles.otherMessageTime}>{date}</Text>
                               </View>
@@ -830,6 +895,7 @@ export default class SingleTrade extends Component {
                 </View>
               </View>
           </Modal>
+        
           <Modal style={[Styles.dialogue]}
             visible={this.state.reasonD}
             transparent={true}
@@ -849,6 +915,19 @@ export default class SingleTrade extends Component {
                       <TouchableHighlight style={[Styles.borderView, Styles.buttonGreen]} onPress={()=>this.dispute()}>
                           <Text>Submit</Text>
                       </TouchableHighlight>
+                </View>
+              </View>
+          </Modal>
+        
+          <Modal style={[Styles.dialogue]}
+            visible={this.state.imageMode}
+            transparent={true}
+            animationType={"fade"}
+            onRequestClose={ () => { this.setState({imageMode:false})}}>
+               <View style={Styles.dialogue}>
+                <View style={Styles.dialogueContainerImage}>
+                    <Icon name='close' style={{position:'absolute', right:20,top:10, fontSize:26, zIndex:999}} onPress={()=>this.setState({imageMode:false})}/>
+                    <Image source={{uri:this.state.imageModeUri}} style={{width:width, height:height, resizeMode:'stretch'}}/>
                 </View>
               </View>
           </Modal>
