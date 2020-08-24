@@ -134,12 +134,16 @@ export default class BuyTrade extends Component {
                    // console.log('Response from send request===>', json);
                       if(json.responseCode==200){
                           console.log('Modified json=====>', json.result);
+                          var msg = "Buy trade request from " + json.result.trade_owner_name;
+                          if(this.state.role=='Sell')
+                            msg = "Sell trade request from " + json.result.trade_owner_name;
+
                           socket.emit('sendMessage', {
                             // receiverId: this.state.receiverId.toString(),
                             receiverId: [json.addOwnerId],
                             senderId: this.state._id.toString(),
                             senderName:json.result.trade_owner_name,
-                            message: "Buy trade request from " + json.result.trade_owner_name,
+                            message: msg,
                             tradeId: json.result._id,
                             image: null,
                             notificationType: "chat",
@@ -174,7 +178,7 @@ export default class BuyTrade extends Component {
 
     return (
       <View style={Styles.body}>
-       <Header title={this.state.role+' BITCOIN'} menuCheck="false" data={this.props} style={Styles.header}/>
+       <Header title={this.state.role+' Bitcoin'} menuCheck="false" data={this.props} style={Styles.header}/>
         <ProgressBar
           title={this.state.loadingTitle}
           message={this.state.loadingMessage}

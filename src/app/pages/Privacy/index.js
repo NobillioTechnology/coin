@@ -24,7 +24,8 @@ export default class Home extends Component {
          loading:false,
          loadingTitle:'Please Wait',
          loadingMessage:'loading...',
-         data:'', title:'Privacy Policy'
+         data:'', title:'Privacy Policy',
+         drawer:'true',
       }
       this.stopLoading=this.stopLoading.bind(this);
       this.handleBack=this.handleBack.bind(this);
@@ -33,14 +34,21 @@ export default class Home extends Component {
     componentDidMount=async()=>{
       BackHandler.addEventListener('hardwareBackPress', this.handleBack);
       await this.getPP();
+      if(this.props.navigation.getParam('from')=='register')
+        this.setState({drawer:'false'})
     }
     componentWillUnmount(){
       BackHandler.removeEventListener('hardwareBackPress', this.handleBack);
     }
 
     handleBack(){
-          this.props.navigation.goBack(null);
-          return true;
+      if(this.state.drawer=='true'){
+        this.props.navigation.goBack(null);
+        return true;
+      }else{
+        this.props.navigation.replace('Register');
+        return true;
+      }
     }
 
    stopLoading(){
@@ -76,7 +84,7 @@ export default class Home extends Component {
    // if(this.props.navigation.state.key=='Icon')
     return (
       <View style={Styles.body}>
-       <Header title="Privacy Policy" menuCheck="true" data={this.props} style={Styles.header}/>
+       <Header title="Privacy Policy" menuCheck={this.state.drawer} data={this.props} style={Styles.header} handleBack={this.handleBack}/>
            <ProgressBar
             title={this.state.loadingTitle}
             message={this.state.loadingMessage}

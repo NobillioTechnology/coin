@@ -28,8 +28,7 @@ export default StyleSheet.create({
 	editText:{
 		backgroundColor:Utils.colorWhite,
 		flex:0.5,
-		borderTopLeftRadius:5,
-		borderBottomLeftRadius:5,
+		borderRadius:5,
 		borderWidth:1,
 		borderColor:Utils.colorGray,
 		textAlign:'center',
@@ -40,8 +39,7 @@ export default StyleSheet.create({
 		flex:0.5,
 		borderWidth:1,
 		borderColor:Utils.colorGray,
-		borderBottomRightRadius:5,
-		borderTopRightRadius:5,
+		borderRadius:5,
 		justifyContent:'center'
 	},
 	submit:{

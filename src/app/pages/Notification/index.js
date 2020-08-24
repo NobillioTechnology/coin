@@ -24,7 +24,7 @@ export default class Notification extends Component {
 
    componentDidUpdate=async()=>{
     await socket.connect();
-    socket.emit('initChat', { userId:this.state._id});
+    await socket.emit('initChat',{userId:this.state._id})
    }
 
    componentDidMount=async()=>{
@@ -38,20 +38,41 @@ export default class Notification extends Component {
       userId:this.state._id,
     })
     socket.on('notificationList', (resp) => {
-        // console.log('noti list ====>', resp.succ);
+        console.log('noti list ====>', 'notification from page===>');
+        // console.log(resp.succ);
         this.setState({notiData:resp.succ});
     })
    }
 
-  // search(){
-  //   this.setState({activeSearch:!this.state.activeSearch});
-  // }
+   componentWillReceiveProps(){
+    socket.emit('notificationList', {
+      userId:this.state._id,
+    })
+   }
+
+   openNoti=async(res, sen, trade, type)=>{
+    console.log('recId====>', res);
+    console.log('senId====>', sen);
+    console.log('tradeId====>', trade);
+    console.log('type====>', type);
+    await socket.emit('currentlyChatting', {
+      receiverId: res,
+      senderId: sen,
+      tradeId: trade,
+      //  notificationType:"chat",
+       type:'GROUP'
+    })
+    if(trade!='Notificaton')
+      this.props.navigation.navigate('SingleTrade', {'tradeId':trade, 'from':'noti'});
+    else
+      this.props.navigation.navigate('Wallet');
+    }
 
   render() {
 
     return (
       <View style={Styles.body}>
-       <Header title="Notification" rightIcon={false} data={this.props} style={Styles.header}/>
+       <Header title="Notification" menuCheck="true" rightIcon={false} data={this.props} style={Styles.header}/>
 
         <ScrollView style={{flex:1}}>
             <View style={Styles.container}>
@@ -59,7 +80,7 @@ export default class Notification extends Component {
                 return(
                  <View>
                   {!item._id.isSeen ? (
-                    <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('SingleTrade', {'tradeId':item._id.tradeId})}>
+                    <TouchableHighlight underlayColor='none' onPress={()=>this.openNoti(item._id.receiverId, item._id.senderId, item._id.tradeId, item.messageType)}>
                       <View style={[CommonCss.cardView,{padding:10, width:'90%', marginTop:5, backgroundColor:Utils.colorGreen}]}>
                         <View style={{flexDirection:'row'}}>
                           <Text style={{fontSize:Utils.headSize, color:Utils.colorWhite}}>{item.senderName}</Text>
@@ -71,9 +92,9 @@ export default class Notification extends Component {
                       </View>
                     </TouchableHighlight>
                   ):(
-                    <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('SingleTrade', {'tradeId':item._id.tradeId})}>
+                    <TouchableHighlight underlayColor='none' onPress={()=>this.openNoti(item._id.receiverId, item._id.senderId, item._id.tradeId, item.messageType)}>
                       <View style={[CommonCss.cardView,{padding:10, width:'90%', marginTop:5}]}>
-                          <Text style={{fontSize:Utils.headSize, color:Utils.colorGreen}}>{item.senderName}</Text>
+                          <Text style={{fontSize:Utils.headSize, color:Utils.colorDarkBlue, fontWeight:'bold'}}>{item.senderName}</Text>
                           <Text style={{fontSize:Utils.subHeadSize, color:Utils.colorBlack, marginTop:5}}>{item.message}</Text>
                       </View>
                     </TouchableHighlight>
@@ -83,7 +104,7 @@ export default class Notification extends Component {
               })}
             </View>
         </ScrollView>
-        <Footer style={Styles.footer} navigation={this.props.navigation} selected={'notification'} double={false}/>
+        <Footer style={Styles.footer} navigation={this.props.navigation} selected={'notification'} double={true}/>
       </View>
     );
   }

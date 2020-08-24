@@ -13,7 +13,7 @@ import ProgressBar from '../ProgressBar';
 import DropDown from '../DropDown';
 import RNZendeskChat from 'react-native-zendesk-v2';
 
-const key='d5387da4-a81e-46f5-ae0d-8bba0462fc45';
+const key='WwrUlEnUJ6pyIOyi5W8h50sQ6D8IHFzL';
 // let options = {
 //       title: 'Select Image',
 //       customButtons: [
@@ -35,9 +35,9 @@ export default class Home extends Component {
         loadingTitle:'Please Wait',
         loadingMessage:'loading...',
         file:'', fileName:'Upload file (optional)', validFile:true,
-        email:'', validEmail:true, msg:'', validMsg:true,
+        email:'13badbola@gmail.com', validEmail:true, msg:'', validMsg:true,
         dropDown:false, zen:false,
-        name:'', validName:true,
+        name:'sanjeev kumar', validName:true,
       }
       this.stopLoading=this.stopLoading.bind(this);
       this.handleBack=this.handleBack.bind(this);
@@ -47,34 +47,35 @@ export default class Home extends Component {
       let user={"full_name":"sanjeev kumar", "mobile_phone":"7500063621", "email":'13badbola@gmail.com'}
       BackHandler.addEventListener('hardwareBackPress', this.handleBack);
 //       ZendeskChat.init("d5387da4-a81e-46f5-ae0d-8bba0462fc45");
+      RNZendeskChat.initChat('mobile_sdk_client_e9b76db55dae8aa13b01');
+
       RNZendeskChat.init({
         key: key,
-        appId: key,
-        url: "https://www.coinbaazar.com/api/v1/",
-        clientId: "",
+        appId: 'f5002ba6211504109e91be20fb64508b85799cf007bfe5d3',
+        url: "https://moderatorcb.zendesk.com",
+        clientId: "mobile_sdk_client_e9b76db55dae8aa13b01",
       });
 
-      RNZendeskChat.initChat('d5387da4-a81e-46f5-ae0d-8bba0462fc45');
-      // RNZendeskChat.setUserIdentity({
-      //   name: this.state.name,
-      //   email: this.state.email,
-      // });
+      // RNZendeskChat.initChat('mobile_sdk_client_e9b76db55dae8aa13b01');
+      RNZendeskChat.setUserIdentity({
+        name: this.state.name,
+        email: this.state.email,
+      });
 
-      // RNZendeskChat.startChat({
-      //   name: user.full_name,
-      //   email: user.email,
-      //   phone: user.mobile_phone,
-      //   tags: ['tag1', 'tag2'],
-      //   department: "Your department",
-      //   chatOnly:false,
-      //   botName:'hello'
-      // });
+      RNZendeskChat.startChat({
+        name: user.full_name,
+        email: user.email,
+        phone: user.mobile_phone,
+        tags: ['tag1', 'tag2'],
+        department: "Your department",
+        // chatOnly:true,
+        botName:'coinbaazar'
+      });
 
       RNZendeskChat.showHelpCenter({
-        withChat: false, // add this if you want to use chat instead of ticket creation
-        // disableTicketCreation: false // add this if you want to just show help center and not add ticket creation
+        withChat: true, // add this if you want to use chat instead of ticket creation
+        disableTicketCreation: false // add this if you want to just show help center and not add ticket creation
       })
-
     }
 
     componentWillUnmount(){
@@ -99,7 +100,6 @@ export default class Home extends Component {
       else
        await this.setState({validEmail:false});
    }
-
 
    stopLoading(){
      if(this.state.loading)
@@ -215,87 +215,7 @@ export default class Home extends Component {
   render() {
     
     return (
-      <View style={Styles.body}>
-       <Header title="Leave us a message" menuCheck="false" data={this.props} style={Styles.header}/>
-         <ProgressBar
-            title={this.state.loadingTitle}
-            message={this.state.loadingMessage}
-            visible={this.state.loading}
-            close={this.stopLoading}
-          />
-          <ScrollView style={{flex:0.8}} keyboardShouldPersistTaps={'always'}>
-          <View style={[Styles.container,Styles.shadow]}>
-            {/* <RNZendeskChat /> */}
-            <View style={Styles.radioView}>
-              <Text style={Styles.radioText}>Your Name (Optional):</Text>
-                <View style={this.state.validName ? Styles.pickerView : Styles.pickerViewError}>
-                <TextInput style={{paddingHorizontal:10}}
-                  placeholder={'Enter your name'}
-                  value={this.state.name}
-                  onChangeText={(name)=>this.setState({name:name, validName:true})}
-                />
-                </View>
-            </View>
-            <View style={Styles.radioView}>
-                <Text style={Styles.radioText}>Email Address:</Text>
-                <View style={this.state.validEmail==false ? Styles.inputTextError : Styles.inputText}>
-                  <TextInput
-                    value={this.state.email}
-                    onChangeText={(email)=>this.validateEmail(email)}
-                  />
-                </View>
-              </View>
-
-            <View style={{marginTop:20, marginLeft:20}}>
-                <Text style={Styles.radioText}>{this.state.zen ? 'How can we help you?' :'Message Here:'}</Text>
-                <TextInput 
-                  style={this.state.validMsg==false ? Styles.inputTextAreaError : Styles.inputTextArea}
-                  value={this.state.msg}
-                  onChangeText={(text)=>this.setState({msg:text, validMsg:true})}
-                  multiline={true}
-                 />
-            </View>
-
-            <View style={{marginTop:20, marginLeft:20}}>
-                <Text style={Styles.radioText}>Attach Document:</Text>
-                <TouchableHighlight underlayColor='none' onPress={()=>this.selectImage()}>
-                  <View style={Styles.detailRow}>
-                    <Text style={{fontSize:Utils.subHeadSize, color:Utils.colorGray}}>{this.state.fileName}</Text>
-                    <Icon name={this.state.file!='' ? 'close' : 'paperclip'} style={Styles.rightIcon} onPress={()=>this.resetImage()}/>
-                </View>
-                </TouchableHighlight>
-            </View>  
-            <TouchableHighlight underlayColor='none' onPress={()=>this.send()}>
-              <View style={Styles.sendButton}>
-                <Text style={{fontSize:Utils.headSize}}>Send</Text>
-              </View>
-            </TouchableHighlight>
-            {/* <ReactZenDeskChat appID="d5387da4-a81e-46f5-ae0d-8bba0462fc45" /> */}
-          </View>
-        </ScrollView>
-        {this.state.imageSelector==true && (
-         <View>
-           <Modal style={CommonCss.dialogue}
-            isVisible={this.state.imageSelector}
-            transparent={true}
-            animationType={"fade"}
-            onRequestClose={()=>this.setState({imageSelector:false})}
-            >
-             <View style={CommonCss.dialogue}>
-              <View style={CommonCss.dialogueContainer}>
-                  <Text style={CommonCss.dialogCamera} onPress={()=>this.launchCamera(this.state.imageCount)}>Camera</Text>
-                  <Image style={{width:280, height:1, backgroundColor:Utils.colorGray}} />
-                  <Text style={CommonCss.dialogCamera} onPress={()=>this.launchImageLibrary(this.state.imageCount)}>Gallery</Text>
-                  <Image style={{width:280, height:1, backgroundColor:Utils.colorGray}} />
-                  <Text style={CommonCss.dialogueCancel}
-                    onPress={()=>this.setState({imageSelector:!this.state.imageSelector})}
-                  >Close</Text>
-                </View>
-              </View>
-            </Modal>
-         </View>
-        )}
-      </View>
+      null
     );
   }
 }

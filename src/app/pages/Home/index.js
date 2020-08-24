@@ -10,10 +10,10 @@ import Utils from '../Utils';
 import commonCss from '../Utils/commonCss';
 import CustomDialog from '../CustomDialog';
 import WebApi from '../../Common/WebApi';
-// import PushNotification from 'react-native-push-notification';
 import firebase  from '../Utils/firebase';
-// import ZendeskChat from "react-native-zendesk-chat";
-// ZendeskChat.init("d5387da4-a81e-46f5-ae0d-8bba0462fc45");
+import RNZendeskChat from 'react-native-zendesk-v2';
+
+const key='WwrUlEnUJ6pyIOyi5W8h50sQ6D8IHFzL';
 
 import PushNotificationIOS from "@react-native-community/push-notification-ios";
 var PushNotification = require("react-native-push-notification");
@@ -65,7 +65,8 @@ export default class Home extends Component {
         popupShown:false,
         receiveAddress:'',
         receiveQR:'https://fullstackworld.com/storage/images/UL8ojQAm8dUqkUdtFTSNqwnLSc9NIZRi4UQIOdym.png',
-        selectedLanguage:'en'
+        selectedLanguage:'en',
+        isWaiting:false,
       }
       this.closePopup=this.closePopup.bind(this);
       this.receiveBC=this.receiveBC.bind(this);
@@ -75,15 +76,52 @@ export default class Home extends Component {
     // console.log('token====>', JSON.stringify(tokenT));
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButtonClick);
      this.setState({_id:await AsyncStorage.getItem(Utils._id), receiveQR:await AsyncStorage.getItem(Utils.receiveQr), receiveAddress:await AsyncStorage.getItem(Utils.receiveWA).toString()});
-     this.getWalletAddress();
+     this.getWalletAddress();      
+        // alert(JSON.stringify(FCMToken));
+        // console.log('FCM TOKEN====>', FCMToken);  
+  }
 
-      
-        alert(JSON.stringify(FCMToken));
-        console.log('FCM TOKEN====>', FCMToken);
+  startZendesk(){
+    RNZendeskChat.initChat('mobile_sdk_client_e9b76db55dae8aa13b01');
+
+    RNZendeskChat.init({
+      key: key,
+      appId: 'f5002ba6211504109e91be20fb64508b85799cf007bfe5d3',
+      url: "https://moderatorcb.zendesk.com",
+      clientId: "mobile_sdk_client_e9b76db55dae8aa13b01",
+    });
+
+    // RNZendeskChat.initChat('mobile_sdk_client_e9b76db55dae8aa13b01');
+    RNZendeskChat.setUserIdentity({
+      name: this.state.userName,
+      email: this.state.email,
+    });
+
+    RNZendeskChat.startChat({
+      name: this.state.userName,
+      email: this.state.email,
+      phone: this.state.phone,
+      tags: ['tag1', 'tag2'],
+      department: "Your department",
+      // chatOnly:true,
+      botName:'coinbaazar'
+    });
+
+    RNZendeskChat.showHelpCenter({
+      withChat: true, // add this if you want to use chat instead of ticket creation
+      // disableTicketCreation: false // add this if you want to just show help center and not add ticket creation
+    })
   }
 
   componentDidUpdate(){
-         this.updateLastActive();
+    if(!this.state.isWaiting){
+        setTimeout(()=>{
+          this.updateLastActive();
+          this.getWalletAddress();
+          this.setState({isWaiting:false});
+        }, 3000);
+        this.setState({isWaiting:true});
+      }
   }
 
   componentWillUnmount() {
@@ -147,7 +185,7 @@ export default class Home extends Component {
            .then(response => response.json())
                 .then(json => {
                    this.setState({loading:false});
-                    //  console.log('Response from getProfile===>',json.result.btc);
+                    //  console.log('Response from getProfile===>', json.result);
                         if(json.responseCode==200){
                             const data = json.result
                             var qr = 'https://fullstackworld.com/storage/images/UL8ojQAm8dUqkUdtFTSNqwnLSc9NIZRi4UQIOdym.png';
@@ -163,7 +201,10 @@ export default class Home extends Component {
                             AsyncStorage.setItem(Utils.receiveWA, walletAdd);
                             this.setState({
                               receiveAddress:walletAdd,
-                              receiveQR:qr
+                              receiveQR:qr,
+                              userName:data.user_name,
+                              email:data.email,
+                              phone:data.phone_number
                             })
                         }else{
                           this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
@@ -204,7 +245,7 @@ export default class Home extends Component {
    // if(this.props.navigation.state.key=='Icon')
     return (
       <View style={Styles.body}>
-       <Header title="Home" menuCheck="true" rightIcon={true} data={this.props} style={Styles.header}/>
+       <Header title="Home" menuCheck="true" rightIcon={false} data={this.props} style={Styles.header}/>
         <ScrollView style={{flex:0.8}}>
           <View style={Styles.container}>
 
@@ -259,7 +300,7 @@ export default class Home extends Component {
 
           </View>
         </ScrollView>
-        <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('Zendesk')} style={[Styles.plusMsg, Styles.shadow]}>
+        <TouchableHighlight underlayColor='none' onPress={()=>this.startZendesk()} style={[Styles.plusMsg, Styles.shadow]}>
           <View>
              <Text style={{fontSize:Utils.textSize+4, color:Utils.colorWhite}}>Help</Text>
           </View>

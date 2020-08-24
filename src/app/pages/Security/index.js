@@ -25,7 +25,7 @@ export default class Home extends Component {
    // if(this.props.navigation.state.key=='Icon')
     return (
       <View style={Styles.body}>
-       <Header title="Security" data={this.props} style={Styles.header}/>
+       <Header title="Security" data={this.props} menuCheck="true" style={Styles.header}/>
         <ScrollView style={{flex:0.8}}>
           <View style={Styles.container}>
             <View style={{alignSelf:'center', justifyContent:'center', width:width, height:height-150}}>

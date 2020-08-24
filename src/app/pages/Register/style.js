@@ -39,7 +39,8 @@ export default StyleSheet.create({
 		width:'90%',
 		textAlign:'center',
 		alignSelf:'center',
-		fontSize:Utils.textSize
+		fontSize:Utils.headSize,
+		fontWeight:'bold',
 	},
 	bottomLine:{
 		backgroundColor:Utils.colorGray, 
@@ -55,7 +56,7 @@ export default StyleSheet.create({
 		bottom:50
 	},
 	createButton:{
-		backgroundColor:Utils.colorBlue,
+		backgroundColor:Utils.colorDarkBlue,
 		height:45,
 		marginBottom:15,
 		textAlign:'center',
@@ -163,7 +164,35 @@ export default StyleSheet.create({
 	hyperLogin:{
 		color:Utils.colorPrimary,
 		fontSize:Utils.subHeadSize
-	}
+	},
+	ok:{
+		alignSelf:'center', 
+		marginVertical:10,
+		backgroundColor:Utils.colorGreen,
+		width:'50%',
+		alignItems:'center',
+		justifyContent:'center',
+		height:40,
+		borderRadius:20,
+		flex:0.07
+	},
+	dialogue:{
+		alignSelf:'center',
+		justifyContent:'center',
+		backgroundColor:'#00000088',
+		width:'100%',
+		height:'100%',
+		alignItems:'center',
+	},
+	dialogueContainer:{
+		height:'99%',
+		width:'98%',
+		backgroundColor : Utils.colorWhite,
+		borderWidth: 1,
+		borderColor:Utils.colorGreen,
+		borderRadius:17,
+	},
+
  })
 
             // <Icon name={ ( this.state.passwordType ) ? "eye-slash" : "eye" } style={Styles.visibleIcon} onPress={()=>this.setPasswordType()}/>

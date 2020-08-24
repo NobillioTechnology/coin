@@ -13,7 +13,9 @@ import RadioForm from 'react-native-simple-radio-button';
 import WebApi from '../../Common/WebApi';
 import ProgressBar from '../ProgressBar';
 import DropDown from '../DropDown';
-
+import SearchableDropdown from 'react-native-searchable-dropdown';
+import HTML from 'react-native-render-html';
+import { WebView } from 'react-native-webview';
 
 const width = Dimensions.get('window').width;
 
@@ -30,10 +32,9 @@ export default class Home extends Component {
         _id:'',
         loading:false, loadingTitle:'Please Wait', loadingMessage:'loading...',
         detailsTab:false, wantTo:'sell',
-        countryData:Utils.country,
-        country:'', validCountry:true,countrySelector:false,
-        paymentList:[],payListWeb:[], paymentMode:'',paymentModeLabel:'', validPaymentMode:true,
-        currency:'', currencySelector:false, currencyData:Utils.currency, validCurrency:true,
+        country:'', validCountry:true,
+        paymentList:[], paymentMode:'', paymentModeLabel:'', validPaymentMode:true,
+        currency:'', validCurrency:true,
         margin:'', validMargin:true, priceBtc:'0.0000',currentPrice:'0.00',
         identified:false, smsVerify:false, trusted:false,
         minTxn:0, validMinTxn:true, maxTxn:0, validMaxTxn:true,
@@ -48,7 +49,7 @@ export default class Home extends Component {
         ],
         restricts:[], tt:'', validTt:true, time:0, validTime:true,
          dropDown:false, currentDrop:'', dropItems:[],
-         termsTab:false, temp:[],
+         terms:'', termsTab:false, temp:[],
       }
 
       this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
@@ -61,6 +62,7 @@ export default class Home extends Component {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButtonClick);
     const _id = await AsyncStorage.getItem(Utils._id);
     this.setState({_id:_id});
+    this.getTerms();
     this.getPaymentList();
     this.getTagList();
     await this.priceCal();
@@ -81,59 +83,41 @@ export default class Home extends Component {
       }
   }
 
-  selectCountry=async(country)=>{
-    console.log('country text====>',country);
-    this.setState({country:country, validCountry:false, countrySelector:true, currencySelector:false, paymentMethodSelector:false});
-     var data = Utils.country;
-     var out = [];
-    for (var i = 0; i< data.length; i++) {
-    if(data[i].label.substring(0, country.length)==country)
-        out.push(data[i]);
-      }
-     // console.log(out)
-     this.setState({countryData:out});
+  getTerms=async()=>{
+    await WebApi.getPrivacyPolicy('AddCondition')
+    .then(response => response.json())
+      .then(json => {
+          this.setState({loading:false});
+            var data = json.succ.description;
+            data = data.substring(4, data.length);
+            // console.log('Response from terms===>', data);
+            data = data.substring(0, data.length-6);
+            // console.log('Response from terms===>', data);
+            data = '<body><p><dl>'+data+'</dl></p></body>';
+            console.log('Response from terms===>', data);
+              if(json.responseCode==200){
+                  this.setState({terms:data, termsTab:true});
+              }else{
+                this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
+              }
+          })
+          .catch(error => {
+                console.log('error==>' , error)
+                this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error});
+          });
   }
 
   selectedCountry(val){
-    this.setState({country:val, countrySelector:false, validCountry:true});
+    this.setState({country:val.value, validCountry:true});
   }
 
-  selectCurrency=async(currency)=>{
-    var data =  Utils.currency;
-    var out = [];
-    this.setState({currency:currency, currencySelector:true, countrySelector:false, paymentMethodSelector:false, validCurrency:false});
-    for (var i = 0; i<data.length; i++) {
-        if(data[i].label.substring(0, currency.length)==currency.toUpperCase())
-        out.push(data[i]);
-      }
-      console.log('Item====>after filter', currency.toUpperCase(), out);
-      this.setState({currencyData:out});
-  }
-
-  selectedCurrency(val){
-    this.setState({currency:val, currencySelector:false, validCurrency:true});
-    // this.priceEquation(this.state.amountBtc);
-  }
-
-  selectPayMethod=async(val)=>{
-    this.setState({paymentList:this.state.payListWeb});
-    var data =  this.state.payListWeb;
-    var out = [];
-    this.setState({paymentMode:val, paymentModeLabel:val, paymentMethodSelector:true, countrySelector:false, currencySelector:false, validPaymentMode:false});
-    for (var i = 0; i<data.length; i++) {
-        if(data[i].label.substring(0, val.length)==val)
-            out.push(data[i]);
-      }
-    //  console.log(out)
-     this.setState({paymentList:out});
+  selectedCurrency=async(val)=>{
+    await this.setState({currency:val.value, validCurrency:true, margin:''});
+    this.priceCal();
   }
 
   selectedPaymentMthod(val){
-    this.state.paymentList.map((item=>{
-      if(item.value==val)
-      this.setState({paymentMode:val, paymentModeLabel:item.label, paymentMethodSelector:false, validPaymentMode:true});
-    }))
-
+      this.setState({paymentMode:val.value, paymentModeLabel:val.name, validPaymentMode:true});
   }
 
   getPaymentList=async()=>{
@@ -144,11 +128,10 @@ export default class Home extends Component {
                      // console.log('Response from paymentList===>', json);
                         if(json.responseCode==200){
                             const data = json.result
-                            data.map((item, index)=>{
-                              const paymentList = this.state.payListWeb;
-                              paymentList.push({label:item.name, value:item._id, color:'#000000'});
+                            var paymentList = this.state.paymentList;
+                            data.map((item)=>{
+                              paymentList.push({name:item.name, value:item._id});
                               this.setState({
-                                payListWeb:paymentList,
                                 paymentList:paymentList
                               })
                             })
@@ -198,11 +181,20 @@ export default class Home extends Component {
       this.setState({validMargin:false});
   }
 
+  refineBtc(btc){
+    console.log(btc);
+    const dot = btc.indexOf('.');
+    var beforeDot = btc.substring(0, dot);
+    var afterDot = btc.substring(dot, btc.length);
+    beforeDot = beforeDot.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return beforeDot+afterDot;
+  }
+
   priceCal=async()=>{
     this.setState({priceLoading:true});
     var crr = this.state.currency;
     if(crr=='')
-    crr = 'INR';
+      crr = 'USD';
     const body = JSON.stringify({
                   localCurrency:crr,
                   margin:this.state.margin
@@ -214,17 +206,25 @@ export default class Home extends Component {
                     //  console.log('Response from priceCal===>', json);
                         if(json.responseCode==200){
                             const data = json.result
+
                               this.setState({
-                                priceBtc:String(parseFloat(data.price).toFixed(2)),
+                                calculated:parseFloat(data.price).toFixed(2),
+                                priceBtc:this.refineBtc(String(parseFloat(data.price).toFixed(2))),
+                                priceToSend:data.price,
                                 priceLoading:false
                               })
+                              if(this.state.margin=='')
+                                this.setState({currentPrice:this.refineBtc(String(parseFloat(data.price).toFixed(2))), temp:data.price});
+
+                                var earn = data.price-this.state.temp;
+                                this.setState({earn:this.refineBtc(String(parseFloat(earn).toFixed(2)))});
                         }else{
                           this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage, priceLoading:false});
                         }
                     })
                     .catch(error => {
                          console.log('error==>' , error)
-                         this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error, priceLoading:false});
+                         this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! Internal Server Error', priceLoading:false});
                     });
 
   }
@@ -353,7 +353,7 @@ export default class Home extends Component {
   }
 
   submitAd=async()=>{
-    var rule = 'You can only buy psot';
+    var rule = 'You can only buy post';
     if(this.state.wantTo==='buy'){
       rule='You can only sell post';
     }
@@ -367,7 +367,7 @@ export default class Home extends Component {
                   minTxnlimit:this.state.minTxn,
                   paymentMethodId:this.state.paymentMode,
                   payment_time:this.state.time,
-                  priceEquation:this.state.priceBtc,
+                  priceEquation:this.state.priceToSend,
                   restrictAmount:this.state.restricts,
                   ruleAndrequirement:rule,
                   sms_verification:this.state.smsVerify,
@@ -414,7 +414,9 @@ export default class Home extends Component {
         <ScrollView keyboardShouldPersistTaps={'always'}>
           {this.state.detailsTab==false ? (
             <View style={Styles.container}>
-              <Text style={Styles.heading}>Advertisement Rules And Requirements</Text>
+              <View style={[Styles.head, {width:'95%', borderRadius:10, alignSelf:'center', alignItems:'center', justifyContent:'center', backgroundColor:Utils.colorDarkBlue, height:40}]}>
+                <Text style={{color:Utils.colorWhite, fontSize:Utils.headSize}}>Advertisement Rules And Requirements</Text>
+              </View>
               <View style={Styles.radioView}>
                 <Text style={Styles.radioText}>I want to   </Text>
                 <RadioForm
@@ -429,34 +431,53 @@ export default class Home extends Component {
                   buttonOuterSize={25}
                 />
               </View>
-              <View style={Styles.radioView}>
-                <Text style={Styles.radioText}>Location:</Text>
-                <View style={this.state.validCountry==false ? Styles.countryViewError : Styles.countryView}>
-                       <TextInput style={{paddingHorizontal:15, width:'100%'}} 
-                            placeholder='Select Country' 
-                            onChangeText={(country)=>{this.selectCountry(country);}}
-                            value={this.state.country}
-                            onFocus={() =>this.setState({countrySelector:true})}
-                            // autoFocus={true}
-                       />
-                       {/* <Icon name='sort-down' style={Styles.dropIcon}/> */}
-                   </View>
-                </View>
-                    {this.state.countrySelector==true && (
-                     <View>
-                         <View style={{width:'100%', backgroundColor:Utils.colorWhite, marginVertical:15}}>
-                          {this.state.countryData.map((item, index)=>{
-                            return (
-                              <View style={{width:'100%'}}>
-                                  <Text style={{color:Utils.colorBlack, paddingHorizontal:15, fontSize:Utils.subHeadSize}} onPress={()=>this.selectedCountry(item.value)}>{item.label}</Text>
-                                  <Image style={{width:'100%', height:1, backgroundColor:Utils.colorGray, marginVertical:10}} />
-                              </View>
-                            )
-                          })}
-                      </View>
-                     </View>
-                    )}
 
+              <View style={[{flex:1, flexDirection:'row', width:'90%', alignSelf:'center', alignItems:'center', justifyContent:'center', marginTop:10}]}>
+                <Text style={[{flex:1}]}>Location:</Text>
+                <View style={[this.state.validCountry==false ? Styles.countryViewError : Styles.countryView, {width:'55%', alignItems:'center', justifyContent:'center'}]}>
+                  <SearchableDropdown
+                            style={[this.validCountry ? Styles.countryView : Styles.countryViewError, {flex:1}]}
+                            onItemSelect={(item) => {this.selectedCountry(item)}}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={Utils.country}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Country",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40,
+                                    textAlign:'center'
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
+                        />
+                      </View>
+                  </View>
               <View style={Styles.securityView}>
                 <Text style={Styles.radioText}>Security options:</Text>
                 <View style={Styles.checkRow}>
@@ -472,77 +493,106 @@ export default class Home extends Component {
                   <Text style={Styles.checkLabel}>Only people who Trust my Profile</Text>
                 </View>
               </View>
-              <View style={Styles.radioView}>
-                <Text style={Styles.radioText}>Payment Method:</Text>
-                <View style={this.state.validPaymentMode ? Styles.countryView : Styles.countryViewError}>
-                <View style={{flexDirection:'row'}}>
-                    <TextInput style={{paddingHorizontal:10, width:'100%'}}
-                              placeholder='Select Payment Method'
-                              onChangeText={(text)=>this.selectPayMethod(text)}
-                              value={this.state.paymentModeLabel}
-                              onFocus={() =>this.setState({paymentMethodSelector:true})}
-                        />
-                    {/* <Text style={this.state.currency=='Select currency' ? Styles.placeholder : Styles.dropItemSelected}>{this.state.currency}</Text> */}
-                    {/* <Icon name='sort-down' style={Styles.dropIcon}/> */}
-                  </View>
-                  </View>
-                </View>
-                <ScrollView style={{width:'100%'}} keyboardShouldPersistTaps={'always'}>
-                    <View>
-                        {this.state.paymentMethodSelector==true && (
-                          <View>
-                            <View style={{width:'100%', backgroundColor:Utils.colorWhite, marginVertical:10, paddingTop:10}}>
-                              {this.state.paymentList.map((item, index)=>{
-                                return (
-                                  <View style={{width:'100%'}}>
-                                    <Text style={{color:Utils.colorBlack, paddingHorizontal:15, fontSize:Utils.subHeadSize}} onPress={()=>this.selectedPaymentMthod(item.value)}>{item.label}</Text>
-                                    <Image style={{width:'100%', height:1, backgroundColor:Utils.colorGray, marginVertical:10}} />
-                                  </View>
-                                )
-                              })}
-                            </View>
-                          </View>
-                        )}
-                    </View>
-                  </ScrollView>
-                <View style={Styles.radioView}>
-                <Text style={Styles.radioText}>Currency:</Text>
-                <View style={this.state.validCurrency ? Styles.pickerView : Styles.pickerViewError}>
-                  <View style={{flexDirection:'row'}}>
-                    <TextInput style={{paddingHorizontal:10, width:'100%'}}
-                              placeholder='Select Currency'
-                              onChangeText={(text)=>this.selectCurrency(text)}
-                              value={this.state.currency}
-                              onFocus={() =>this.setState({currencySelector:true})}
-                        />
-                    {/* <Text style={this.state.currency=='Select currency' ? Styles.placeholder : Styles.dropItemSelected}>{this.state.currency}</Text> */}
-                    {/* <Icon name='sort-down' style={Styles.dropIcon}/> */}
-                  </View>
-                </View>
-              </View>
-              <ScrollView style={{width:'100%'}} keyboardShouldPersistTaps={'always'}>
-                    <View>
-                        {this.state.currencySelector==true && (
-                          <View>
-                            <View style={{width:'100%', backgroundColor:Utils.colorWhite, marginVertical:10, paddingTop:10}}>
-                              {this.state.currencyData.map((item, index)=>{
-                                return (
-                                  <View style={{width:'100%'}}>
-                                    <Text style={{color:Utils.colorBlack, paddingHorizontal:15, fontSize:Utils.subHeadSize}} onPress={()=>this.selectedCurrency(item.value)}>{item.label}</Text>
-                                    <Image style={{width:'100%', height:1, backgroundColor:Utils.colorGray, marginVertical:10}} />
-                                  </View>
-                                )
-                              })}
-                            </View>
-                          </View>
-                        )}
-                    </View>
-                  </ScrollView>
 
-                 <View style={Styles.radioView}>
-                  <Text style={Styles.radioText}>Margin:</Text>
-                  <View style={this.state.validMargin ? Styles.inputText : Styles.inputTextError}>
-                    <TextInput style={Styles.bitAddress}
+              <Image style={{width:'80%', height:2, backgroundColor:Utils.colorDarkBlue, marginVertical:20, alignSelf:'center'}}/>
+
+
+              <View style={[{flex:1, flexDirection:'row', width:'90%', alignSelf:'center', alignItems:'center', justifyContent:'center', marginTop:10}]}>
+                  <Text style={[Styles.radioText, {flex:1}]}>Payment Method:</Text>
+                  <View style={[this.state.validPaymentMode==false ? Styles.countryViewError : Styles.countryView, {width:'55%', alignItems:'center', justifyContent:'center'}]}>
+                    <SearchableDropdown
+                            style={[this.state.validPaymentMode ? Styles.countryView : Styles.countryViewError, {flex:1}]}
+                            onItemSelect={(item) => {this.selectedPaymentMthod(item)}}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={this.state.paymentList}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Payment Method",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40,
+                                    textAlign:'center'
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
+                        />
+                    </View>
+                </View>
+                <View style={[{flex:1, flexDirection:'row', width:'90%', alignSelf:'center', alignItems:'center', justifyContent:'center', marginTop:20}]}>
+                  <Text style={[Styles.radioText, {flex:1}]}>Currency:</Text>
+                  <View style={[this.state.validCurrency==false ? Styles.countryViewError : Styles.countryView, {width:'55%', alignItems:'center', justifyContent:'center'}]}>
+                    <SearchableDropdown
+                            style={[this.state.validCurrency ? Styles.countryView : Styles.countryViewError, {flex:1}]}
+                            onItemSelect={(item) => {this.selectedCurrency(item)}}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={Utils.currency}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Currency",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40,
+                                    textAlign:'center'
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
+                        />
+                      </View>
+                    </View>
+                 <View style={[Styles.radioView, {width:'90%'}]}>
+                  <Text style={[Styles.radioText, {flex:1}]}>Margin:</Text>
+                  <View style={this.state.validMargin ? [Styles.inputText, {width:'55%', marginLeft:13}] : Styles.inputTextError}>
+                    <TextInput style={[Styles.bitAddress]}
                       placeholder="0"
                       placeholderTextColor={Utils.colorGray}
                       value={this.state.margin}
@@ -552,15 +602,15 @@ export default class Home extends Component {
                     <Icon name="percent" style={Styles.copyIcon}/>
                   </View>
                 </View>
-                <View style={{marginLeft:'25%', marginTop:10}}>
+                <View style={{alignSelf:'flex-end', marginTop:10, marginRight:20}}>
                 <Text style={{color:Utils.colorGray}}>Current Bitcoin market price : {this.state.currentPrice}</Text>
                 <Text style={{color:Utils.colorGray}}>Your Bitcoin selling price : {this.state.priceBtc}</Text>
-                <Text style={{color:Utils.colorGray}}>How much you earn per one Bitcoin : {(this.state.priceBtc-this.state.currentPrice).toFixed(2)}</Text>
+                <Text style={{color:Utils.colorGray}}>How much you earn per one Bitcoin : {this.state.earn}</Text>
                 </View>
 
-                <View style={Styles.radioView}>
-                  <Text style={Styles.radioText}>Price/BTC:</Text>
-                  <View style={[Styles.inputText, { alignItems:'center', flexDirection:'row'}]}>
+                <View style={[Styles.radioView, {width:'90%'}]}>
+                  <Text style={[Styles.radioText, {flex:1}]}>Price/BTC:</Text>
+                  <View style={[Styles.inputText, { alignItems:'center', flexDirection:'row', width:'55%'}]}>
                     {this.state.priceLoading && (
                       <ActivityIndicator size={'small'}/>
                     )}
@@ -576,7 +626,9 @@ export default class Home extends Component {
 
             ):(
             <View style={Styles.container}>
-              <Text style={Styles.heading}>More Information</Text>
+              <View style={[Styles.head, {width:'95%', borderRadius:10, alignSelf:'center', alignItems:'center', justifyContent:'center', backgroundColor:Utils.colorDarkBlue, height:40}]}>
+                <Text style={Styles.heading}>More Information</Text>
+              </View>
               <View style={Styles.radioView}>
                 <Text style={Styles.detailsLabelText}>Min.transaction limit:</Text>
                 <View style={[this.state.validMinTxn ? Styles.inputText : Styles.inputTextError, {flex:0.4}]}>
@@ -686,44 +738,8 @@ export default class Home extends Component {
                         <View>
                             <Text style={{fontSize:Utils.subHeadSize+1, fontWeight:'bold', textAlign:'center'}}>Advertisement Rules And Requirements</Text>
                             <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>Please click on Transfer bonds button in Dashboard once you create ad , Currently bond value is zero, its just introduced to make sure advertisers are not creating spam ads.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>The Advertisers will be charged 1 % on each completed trade transactions on Coinbaazar.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>The price is final once a trade transaction is open, exception will be made only if there is an absolutely clear mistake in pricing.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>Buying and Selling on behalf of someone else shall be avoided. i.e. Middlemen etc.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>Your payment details must be specified in the advertisement or in the trade chat. All transactions and communication must happen on Coinbaazar platform.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>Please note payment methods marked as High risk, have significant risk of fraud. Coinbaazar wants to warn you about these payment modes .</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>You must ensure ID verification of your trading partners when you are using high risk and high value payments.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>You must disable your ad/ads if you are not ready for trade or You want to go offline.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>In case of any help/assistance while creating ad , please ask the live chat support.</Text>
-                            </View>
-                            <View style={{flexDirection:'row', marginVertical:10}}>
-                              <Text style={{fontSize:18}}>֍ </Text>
-                              <Text style={Styles.dropItem}>Coinbaazar with its transparent and multi utility efficiency system covers a lot more than what other payment systems have to offer. Traders from different countries can exchange their Bitcoin currency through their Coinbaazar wallet.</Text>
+                              <HTML html={this.state.terms } />
+                              {/* <WebView originWhitelist={['*']} source={{ html: this.state.terms  }}/> */}
                             </View>
                           </View>
                       </ScrollView>

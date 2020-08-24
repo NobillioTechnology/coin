@@ -26,7 +26,7 @@ export default class CompletedTrade extends Component {
         loadingTitle:'Please Wait',
         loadingMessage:'Loading...',
         loadingMore:true, refreshing:false, loadingDisabled:false,
-        dataSource:[], page:1, 
+        dataSource:[], page:1, myName:'',
         _id:'',
       }
 
@@ -37,7 +37,8 @@ export default class CompletedTrade extends Component {
 
    componentDidMount=async()=>{
        const _id = await AsyncStorage.getItem(Utils._id);
-       this.setState({_id:_id});
+       const myName = await AsyncStorage.getItem(Utils.userName);
+       this.setState({_id:_id, myName:myName});
        this.getCompletedTrade(this.state.page);
    }
 
@@ -47,10 +48,10 @@ export default class CompletedTrade extends Component {
 
      getCompletedTrade=async(pageNumber)=>{
        if(pageNumber==1)
-         this.setState({dataSource:[]});
+        //  this.setState({dataSource:[]});
          this.setState({refreshing:true});
          const body = JSON.stringify({
-                             limit:50,
+                             limit:10,
                              pageNumber:pageNumber,
                              userId:this.state._id
                          });
@@ -158,12 +159,14 @@ export default class CompletedTrade extends Component {
                           username={item.trade_owner_name}
                           bitcoin={this.refineBtc(parseFloat(item.exchangeRate).toFixed(2))}
                           id={item._id}
-                          uniqueId={item.addUniqueId}
+                          uniqueId={item.uniqueId}
                           amount={item.amount_in_currency}
                           btc={parseFloat(item.amount_of_cryptocurrency).toFixed(8)}
                           fee={parseFloat(item.transactionFee).toFixed(8)}
                           time={item.createdAt.substring(11,16)+', '+item.createdAt.substring(0,10)}
                           flat={item.currency_type}
+                          userName={item.advertisement_owner_name}
+                          myName={this.state.myName}
                           openTrade={this.openTrade}
                         />              
                       </View>

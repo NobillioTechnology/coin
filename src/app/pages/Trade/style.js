@@ -36,7 +36,7 @@ export default StyleSheet.create({
 		width:'100%',
 		flexDirection:'row',
 		alignItems:'center',
-		height:35
+		minHeight:35
 	},
 	heading:{
 		color:Utils.colorWhite,
@@ -51,7 +51,7 @@ export default StyleSheet.create({
 	},
 	detailBody:{
 		backgroundColor:Utils.colorWhite,
-
+		marginTop:20
 	},
 	category:{
 		flexDirection:'row',
@@ -70,7 +70,7 @@ export default StyleSheet.create({
 		height:35,
 		marginTop:10,
 		fontSize:16,
-		marginLeft:10
+		marginLeft:10,
 	},
 	buttonGreen:{
 		width:width/1.4,

@@ -107,20 +107,24 @@ export default StyleSheet.create({
 		flex:0.5
 	},
 	textLabel:{
-		fontSize:Utils.textSize-2,
+		fontSize:Utils.textSize,
 		paddingHorizontal:5,
 
 	},
 	textValue:{
-		fontSize:Utils.textSize-2,
-		fontWeight:'bold'
+		fontSize:Utils.textSize,
+		fontWeight:'bold',
+		minHeight:30,
+		textAlignVertical:'center',
+		textAlign:'center'
 	},
 	columnTotal:{
-		flex:0.35,
+		flex:1,
 		alignItems:'center', 
-		borderWidth:1, 
+		borderWidth:2, 
 		borderColor:Utils.colorGray,
-		minHeight:50
+		marginHorizontal:2,
+		borderRadius:5
 	},
 	line:{
 		width:'100%',

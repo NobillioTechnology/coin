@@ -65,6 +65,7 @@ export default class Home extends Component {
            .then(response => response.json())
                 .then(json => {
                     //  console.log('Response from getProfile===>', json);
+                      this.setState({loading:false});
                         if(json.responseCode==200){
                           this.feedbackScore();
                           this.getOtherTrades();

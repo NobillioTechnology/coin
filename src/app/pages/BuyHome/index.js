@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 import {
-  Text, View, Image, TextInput, TouchableHighlight, BackHandler, ActivityIndicator, FlatList, ScrollView
+  Text, View, Image, TextInput, TouchableHighlight, BackHandler, ActivityIndicator, FlatList, ScrollView, Dimensions
 } from 'react-native';
 import Styles from './style'
 import Header from '../Header'
@@ -16,7 +16,9 @@ import Adapter from './Adapter';
 import RNPickerSelect from 'react-native-picker-select';
 import WebAPi from '../../Common/WebApi';
 import ProgressBar from '../ProgressBar';
-import DropDown from '../DropDown';
+import SearchableDropdown from 'react-native-searchable-dropdown';
+
+const width = Dimensions.get('window').width;
 
 
 export default class Home extends Component {
@@ -30,8 +32,6 @@ export default class Home extends Component {
          this.sellButton=this.sellButton.bind(this);
          this.stopLoading=this.stopLoading.bind(this);
          this.handleBack=this.handleBack.bind(this);
-         this.closeDrop=this.closeDrop.bind(this);
-         this.chooseDropItem=this.chooseDropItem.bind(this);
          
       this.state={
         title:'Buy Bitcoin', 
@@ -40,13 +40,12 @@ export default class Home extends Component {
         loadingTitle:'Please Wait',
         loadingMessage:"Loading...",
         loadingMore:true, refreshing:false, loadingDisabled:false,
-        dataSource:[], page:1, dropDown:false, currentDrop:'', dropItems:[],
+        dataSource:[], page:1,
         _id:'', offr:'All Online Offers',
         filter:false, amount:'', offer:'', offersData:[],
-        country:'', countrySelector:false, countryData:Utils.country,
-        currency:'', currencySelector:false, currencyData:Utils.currency,
+        country:'',
+        currency:'',
       }
-      this.closeDrop=this.closeDrop.bind(this);
       this.openFeed=this.openFeed.bind(this);
    }
 
@@ -95,7 +94,7 @@ export default class Home extends Component {
                       var data = this.state.offersData;
                       if(json.result.length>0){
                           json.result.map((item)=>{
-                            data.push({label:item.name, value:item.name, color:'#000'});
+                            data.push({name:item.name, value:item.name});
                             this.setState({
                               offersData:data,
                             });
@@ -134,7 +133,7 @@ export default class Home extends Component {
             .then(json => {
                 //  console.log('Response from filter trade===>', json.result);
                     if(json.responseCode==200){
-                        console.log('Modified json=====>', json.result.docs)
+                        // console.log('Modified json=====>', json.result.docs)
                       var data = this.state.dataSource;
                       if(json.result.docs.length>0){
                           json.result.docs.map((item)=>{
@@ -181,29 +180,12 @@ export default class Home extends Component {
                 })
     });
     })
-    console.log('from feedback=====>')
+    // console.log('from feedback=====>')
     this.setState({refreshing:false, loadingMore:false});
    }
 
    openFeed(id){
     this.props.navigation.navigate('Feedback', {_id:id});
-   }
-
-   openDrop(dropType){
-     if(dropType=='currency')
-       this.setState({currentDrop:'currency', dropDown:true, dropItems:Utils.currency});
-     else if(dropType=='country')
-       this.setState({currentDrop:'country', dropDown:true, dropItems:Utils.country});
-     else if(dropType=='offer')
-       this.setState({currentDrop:'offer', dropDown:true, dropItems:this.state.offersData});
-  }
-   chooseDropItem(item){
-     if(this.state.currentDrop=='currency')
-         this.setState({dropDown:false, currency:item.value, crrcy:item.value});
-     else if(this.state.currentDrop=='country')
-         this.setState({dropDown:false, country:item.value, contr:item.value});
-     else if(this.state.currentDrop=='offer')
-         this.setState({dropDown:false, offer:item.value, offr:item.value});
    }
 
     loadMore=()=>{
@@ -238,46 +220,20 @@ export default class Home extends Component {
     )
   }
 
-  selectCountry=async(country)=>{
-    this.setState({country:country, countrySelector:true, currencySelector:false});
-     var data = Utils.country;
-     var out = [];
-    for (var i = 0; i<data.length; i++) {
-
-    if(data[i].label.substring(0, country.length)==country)
-        out.push(data[i]);
-      }
-     console.log(out)
-     this.setState({countryData:out});
-  }
-
   selectedCountry(val){
-    this.setState({country:val, countrySelector:false});
+    this.setState({country:val.value});
   }
 
-  selectCurrency=async(currency)=>{
-    this.setState({currency:currency, currencySelector:true, countrySelector:false});
-     var data = Utils.currency;
-     var out = [];
-    for (var i = 0; i<data.length; i++) {
-
-    if(data[i].label.substring(0, currency.length)==currency)
-        out.push(data[i]);
-      }
-     console.log(out)
-     this.setState({currencyData:out});
+  selectedOffer(val){
+    this.setState({offer:val.value});
   }
 
   selectedCurrency(val){
-    this.setState({currency:val, currencySelector:false});
-  }
-
-  closeDrop(){
-    this.setState({dropDown:false});
+    this.setState({currency:val.value});
   }
 
   refineBtc(btc){
-    console.log(btc);
+    // console.log(btc);
     const dot = btc.indexOf('.');
     var beforeDot = btc.substring(0, dot);
     var afterDot = btc.substring(dot, btc.length);
@@ -305,93 +261,151 @@ export default class Home extends Component {
           visible={this.state.loading}
           close={this.stopLoading}
         />
-        <DropDown
-          closeDrop={this.closeDrop}
-          dropdown={this.state.dropDown}
-          items={this.state.dropItems}
-          choose={this.chooseDropItem}
-        />
            <View style={Styles.container}>
                 <View style={{margin:10}}>
-                  <View style={{flexDirection:'row', height:40}}>
-                    <TextInput style={Styles.editText}
+                  <View style={{flexDirection:'row', width:'100%'}}>
+                    <TextInput style={[Styles.editText, {marginRight:5}]}
                       placeholder="Enter Amount"
                       keyboardType={'numeric'}
                       value={this.state.amount}
                       onChangeText={(val)=>this.setState({amount:val})}
                       />
-                  <TouchableHighlight style={Styles.editTextRight} onPress={()=>this.openDrop('currency')} underlayColor='none'>
-                    <View>
-                      <TextInput style={{paddingHorizontal:10, width:'100%'}}
-                            placeholder='Select Currency'
-                            onChangeText={(country)=>this.selectCurrency(country.toUpperCase())}
-                            value={this.state.currency}
-                            onFocus={() =>this.setState({currencySelector:true})}
-                      />
-                      {/* <Text style={this.state.crrcy=='Select currency' ? Styles.placeholder : Styles.dropItemSelected}>{this.state.crrcy}</Text> */}
-                      {/* <Icon name='sort-down' style={Styles.dropIcon}/> */}
-                    </View>
-                  </TouchableHighlight>
+                      <View style={[Styles.editText, {alignItems:'center'}]}>
+                        <SearchableDropdown
+                                style={{}}
+                                onItemSelect={(item) => {this.selectedCurrency(item)}}
+                                containerStyle={{ padding: 5 }}
+                                onRemoveItem={(item) => {
+                                  const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                                  this.setState({ selectedItems: items });
+                                }}
+                                itemStyle={{
+                                  padding: 10,
+                                  marginTop: 2,
+                                  backgroundColor:Utils.colorDarkBlue,
+                                  borderColor: '#bbb',
+                                  borderWidth: 1,
+                                  borderRadius: 5,
+                                }}
+                                itemTextStyle={{color:Utils.colorWhite}}
+                                itemsContainerStyle={{ maxHeight: 140 }}
+                                items={Utils.currency}
+                                defaultIndex={0}
+                                resetValue={false}
+                                textInputProps={
+                                  {
+                                    placeholder: "Currency",
+                                    underlineColorAndroid: "transparent",
+                                    style: {
+                                        paddingHorizontal:10,
+                                        // borderWidth: 1,
+                                        // borderColor: '#ccc',
+                                        // borderRadius: 5,
+                                        maxHeight:40
+                                      },
+                                    onTextChange: text => console.log(text)
+                                  }
+                                }
+                                listProps={
+                                  {
+                                    nestedScrollEnabled: true,
+                                  }
+                                }
+                            />
+                        </View>
+
                   </View>
-                  <ScrollView style={{width:'100%'}} keyboardShouldPersistTaps={'always'}>
-                    <View>
-                        {this.state.currencySelector==true && (
-                          <View>
-                            <View style={{width:'100%', backgroundColor:Utils.colorWhite, marginVertical:10, paddingTop:10}}>
-                              {this.state.currencyData.map((item, index)=>{
-                                return (
-                                  <View style={{width:'100%'}}>
-                                    <Text style={{color:Utils.colorBlack, paddingHorizontal:15, fontSize:Utils.subHeadSize}} onPress={()=>this.selectedCurrency(item.value)}>{item.label}</Text>
-                                    <Image style={{width:'100%', height:1, backgroundColor:Utils.colorGray, marginVertical:10}} />
-                                  </View>
-                                )
-                              })}
-                            </View>
-                          </View>
-                        )}
-                    </View>
-                  </ScrollView>
-                  <View style={{flexDirection:'row', height:40, marginTop:10}}>
-                  <TouchableHighlight style={Styles.editText} onPress={()=>this.openDrop('country')} underlayColor='none'>
-                    <View>
-                      <TextInput style={{paddingHorizontal:15, width:'100%'}} 
-                              placeholder='Select Country' 
-                              onChangeText={(country)=>this.selectCountry(country)}
-                              value={this.state.country}
-                              onFocus={() =>this.setState({countrySelector:true})}
+                  <View style={{flexDirection:'row', marginTop:10}}>
+                      <View style={[Styles.editText, {alignItems:'center'}]}>
+                       <SearchableDropdown
+                            onItemSelect={(item) => {this.selectedCountry(item)}}
+                            containerStyle={{ padding: 5 }}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={Utils.country}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Country",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
                         />
-                      {/* <Icon name='sort-down' style={Styles.dropIcon}/> */}
+                      </View>
+                      <View style={[Styles.editText, {alignItems:'center', marginLeft:5}]}>
+                          <SearchableDropdown
+                            style={[this.state.validPaymentMode ? Styles.countryView : Styles.countryViewError, {flex:1}]}
+                            onItemSelect={(item) => {this.selectedOffer(item)}}
+                            containerStyle={{ padding: 5 }}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={this.state.offersData}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Payment Method",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
+                        />
+                      </View>
                     </View>
-                  </TouchableHighlight>
-                  <TouchableHighlight style={Styles.editTextRight} onPress={()=>this.openDrop('offer')} underlayColor='none'>
-                    <View>
-                      <Text style={this.state.offr=='All Online Offers' ? Styles.placeholder : Styles.dropItemSelected}>{this.state.offr}</Text>
-                      <Icon name='sort-down' style={[Styles.dropIcon, {top:0}]}/>
-                    </View>
-                  </TouchableHighlight>
-                  </View>
-                  <ScrollView style={{width:'100%'}} keyboardShouldPersistTaps={'always'}>
-                    <View>
-                        {this.state.countrySelector==true && (
-                          <View>
-                            <View style={{width:'100%', backgroundColor:Utils.colorWhite, marginVertical:10, paddingTop:10}}>
-                              {this.state.countryData.map((item, index)=>{
-                                return (
-                                  <View style={{width:'100%'}}>
-                                    <Text style={{color:Utils.colorBlack, paddingHorizontal:15, fontSize:Utils.subHeadSize}} onPress={()=>this.selectedCountry(item.value)}>{item.label}</Text>
-                                    <Image style={{width:'100%', height:1, backgroundColor:Utils.colorGray, marginVertical:10}} />
-                                  </View>
-                                )
-                              })}
-                            </View>
-                          </View>
-                        )}
-                    </View>
-                  </ScrollView>
-                  <TouchableHighlight style={Styles.submit} onPress={()=>{this.getTradeList(1)}}>
+                    <TouchableHighlight style={Styles.submit} onPress={()=>{this.getTradeList(1)}}>
                      <Text style={{fontSize:Utils.headSize+2}}>Search</Text>
                   </TouchableHighlight>
-                </View>
+              </View>
 
                 {this.state.role=='Buy' && (
                   <View style={{flex:1}}>
@@ -431,7 +445,7 @@ export default class Home extends Component {
                 )}
 
             {this.state.role=='Sell' && (
-              <View>
+              <View style={{flex:1}}>
               <FlatList
                     data={ this.state.dataSource}
                     renderItem={ ({item}) =>

@@ -1,5 +1,3 @@
-
-
 import React, { Component } from 'react';
 import {
   Text, View, Image, TextInput, ScrollView, Dimensions, StyleSheet, TouchableHighlight, AsyncStorage, BackHandler, Modal
@@ -18,6 +16,7 @@ import DatePicker from 'react-native-datepicker';
 import RNPickerSelect from 'react-native-picker-select';
 import ImagePicker from 'react-native-image-picker';
 import DropDown from '../../DropDown';
+import SearchableDropdown from 'react-native-searchable-dropdown';
 
 
 let options = {
@@ -388,6 +387,9 @@ export default class Home extends Component {
 
   launchCamera = (imageCount) => {
     let options = {
+      quality:1, 
+      maxWidth: 1000, 
+      maxHeight: 1000,
       storageOptions: {
         skipBackup: true,
         path: 'images',
@@ -438,6 +440,9 @@ export default class Home extends Component {
 
   launchImageLibrary = (imageCount) => {
     let options = {
+      quality:1, 
+      maxWidth: 1000, 
+      maxHeight: 1000,
       storageOptions: {
         skipBackup: true,
         path: 'images',
@@ -518,6 +523,12 @@ export default class Home extends Component {
     this.setState({country:val, countrySelector:false, validCountry:true});
   }
 
+  selectedCountryCode(val){
+    this.setState({countryCode:val.value, validCountryCode:true});
+  }
+
+
+
   render() {
     return (
       <View style={Styles.body}>
@@ -556,17 +567,50 @@ export default class Home extends Component {
               {this.state.phoneVerified==false && ( 
                 <View>
                   <Text style={Styles.textLabel}>Verify your phone number to active backup method, increase the reputation of your account and get access to more advertisements.Choose your country code and enter your phone number</Text>
-                  <View style={{marginTop:10, flexDirection:'row', alignItems:'center'}}>
-                    <Text style={Styles.textLabel}>Country Code:</Text>
-                    <View style={this.state.validCountryCode==false ? Styles.pickerViewError : Styles.pickerView}>
-                      <TouchableHighlight onPress={()=>this.openDrop('code')} underlayColor='none'>
-                        <View style={{flexDirection:'row'}}>
-                          <Text style={this.state.countryCode=='Select Country Code' ? Styles.placeholder : Styles.dropItemSelected}>{this.state.countryCode}</Text>
-                          <Icon name='sort-down' style={Styles.dropIcon}/>
-                        </View>
-                      </TouchableHighlight>
-                      </View>    
-                    </View>
+                  <View style={[{flex:1, flexDirection:'row', width:'100%', alignSelf:'center', alignItems:'center', justifyContent:'center', marginTop:10}]}>
+                <Text style={[{flex:1}]}>Location:</Text>
+                <View style={[this.state.validCountryCode==false ? Styles.countryViewError : Styles.countryView, {width:'52%', alignItems:'center', justifyContent:'center'}]}>
+                  <SearchableDropdown
+                            onItemSelect={(item) => {this.selectedCountryCode(item)}}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={Utils.countryCode}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Country Code",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40,
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
+                        />
+                      </View>
+                  </View>
                   <View style={{marginTop:20, flexDirection:'row', alignItems:'center'}}>
                     <Text style={Styles.textLabel}>Phone number:</Text>
                     <TextInput 
@@ -634,29 +678,51 @@ export default class Home extends Component {
                   />
                 </View>
               </View>
-              <Text style={[Styles.textLabel, {marginTop:15}]}>Select Country:</Text>
-              <View style={this.state.validCountry==false ? Styles.countryViewError : Styles.countryView}>
-               <TextInput style={{paddingHorizontal:15}} 
-                          placeholder='Select Country' 
-                          onChangeText={(country)=>this.selectCountry(country)}
-                          value={this.state.country}
-                          onFocus={() =>this.setState({countrySelector:true})}
-               />
-               </View>
-              {this.state.countrySelector==true && (
-                 <View>
-                     <View style={{width:'100%', backgroundColor:Utils.colorWhite, marginVertical:15}}>
-                      {this.state.countryData.map((item, index)=>{
-                        return (
-                          <View style={{width:'100%'}}>
-                              <Text style={{color:Utils.colorBlack, paddingHorizontal:15, fontSize:Utils.subHeadSize}} onPress={()=>this.selectedCountry(item.value)}>{item.label}</Text>
-                              <Image style={{width:'100%', height:1, backgroundColor:Utils.colorGray, marginVertical:10}} />
-                          </View>
-                        )
-                      })}
+              <View style={[{flex:1, flexDirection:'row', width:'100%', alignSelf:'center', alignItems:'center', justifyContent:'center', marginTop:10}]}>
+                <Text style={[{flex:1}]}>Location:</Text>
+                <View style={[this.state.validCountry==false ? Styles.countryViewError : Styles.countryView, {width:'52%', alignItems:'center', justifyContent:'center'}]}>
+                  <SearchableDropdown
+                            style={[this.validCountry ? Styles.countryView : Styles.countryViewError, {flex:1}]}
+                            onItemSelect={(item) => {this.selectedCountry(item)}}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={Utils.country}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Country",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40,
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
+                        />
+                      </View>
                   </View>
-                 </View>
-                )}
               <View style={{marginTop:10, flexDirection:'row', alignItems:'center'}}>
                 <Text style={Styles.textLabel}>Identity Document:</Text>
                 <View style={this.state.validDocType==false ? Styles.pickerViewError : Styles.pickerView}>

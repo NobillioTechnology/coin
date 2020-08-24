@@ -36,7 +36,7 @@ export default class CustomDialog extends Component {
                     <Icon name="close" style={Styles.close} onPress={()=>this.props.actionPer()}/>
                     <Text style={Styles.dialogTitle}>{this.props.title}</Text>
                     <Image style={{width:'90%', height:1, backgroundColor:utils.colorGray}}/>
-                    <Text style={Styles.dialogSubtitle}>Give out the Bitcoin address below to receive Bitcoins.</Text>
+                    <Text style={Styles.dialogSubtitle}>Give out the Bitcoin address below, to receive Bitcoins.</Text>
                     <View style={Styles.bitAddressView}>
                       <Text style={Styles.bitAddress}>{this.props.address}</Text>
                       <Icon name="copy" style={Styles.copyIcon} onPress={()=>{Clipboard.setString(this.props.address); this.setState({copied:true})}}/>

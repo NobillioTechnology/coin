@@ -56,7 +56,9 @@ export default StyleSheet.create({
 		borderRadius:5,
 		borderWidth:1,
 		borderColor:Utils.colorGray,
-		padding:10
+		padding:10,
+		width:'90%',
+		alignSelf:'center'
 	},
 	textLabel:{
 		color:Utils.colorBlack,
@@ -69,30 +71,31 @@ export default StyleSheet.create({
 	textHeading:{
 		color:Utils.colorBlack,
 		fontSize:16,
-		marginLeft:10		
+		width:'90%',
+		alignSelf:'center'
 	},
 	pickerView:{
-		height:42,
 		flex:0.45,
 		marginTop:10,
 		backgroundColor:Utils.colorWhite,
 		borderRadius:5,
 		borderWidth:1,
 		borderColor:Utils.colorGray,
-		justifyContent:'center'
+		justifyContent:'center',
+		alignItems:'center'
 	},
 	pickerViewError:{
-		height:42,
 		flex:0.45,
 		marginTop:10,
 		backgroundColor:Utils.colorWhite,
 		borderRadius:5,
 		borderWidth:1,
 		borderColor:Utils.colorRed,
-		justifyContent:'center'
+		justifyContent:'center',
+		alignItems:'center'
 	},
 	picker:{
-		height:40
+
 	},
 	submit:{
 		backgroundColor:Utils.colorGreen,

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  Text, View, ScrollView, Dimensions, TouchableHighlight, BackHandler
+  Text, View, ScrollView, Dimensions, TouchableHighlight, BackHandler, Image
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Styles from './style'
@@ -28,7 +28,7 @@ export default class Home extends Component {
        selected:'Trade',
        dropDown:false,
        _id:'', bonds:'0.0005', transfer:false, time:'', timer:0, retrive:false,
-       loading:false, loadingTitle:'Please Wait', loadingMessage:'Loading...'
+       loading:true, loadingTitle:'Please Wait', loadingMessage:'Loading...'
      }
     
       this.handleBack=this.handleBack.bind(this);
@@ -41,18 +41,25 @@ export default class Home extends Component {
         const title = this.props.navigation.getParam('title', 'Trade');
         if(this.state.title!=title)
           this.setState({title:title, selected:title});
-
           this.setState({_id:_id});
-          if(this.state.title=='Trade')
+          console.log(this.state.title);
+          if(this.state.title!=='Profile')
               this.userDetails();
+        
+        this.getBonds();
     }
+
     componentWillUnmount(){
       BackHandler.removeEventListener('hardwareBackPress', this.handleBack);
     }
 
     componentWillReceiveProps(){
-      if(this.state.title=='Trade')
-          this.userDetails();
+      // console.log(this.state.title);
+      const title = this.props.navigation.getParam('title', 'Trade');
+      if(this.state.title!=title)
+        this.setState({title:title, selected:title});
+
+        this.userDetails();
     }
 
     handleBack(){
@@ -65,17 +72,17 @@ export default class Home extends Component {
     }
 
     userDetails=async()=>{
-      this.setState({loading:true,loadingTitle:'Please Wait', loadingMessage:'loading...'});
+      // this.setState({loading:true,loadingTitle:'Please Wait', loadingMessage:'loading...'});
       const body = JSON.stringify({userId:this.state._id});
        await WebApi.postApi_trade('userDetails', body)
            .then(response => response.json())
                 .then(json => {
                    this.setState({loading:false});
-                     console.log('Response from retriveBond===>', json.result[0].userBond);
+                    //  console.log('Response from retriveBond===>', json.result);
                      const time = json.result[0].bondActivationTime;
                      var timeSpend = Date.now()-time;
                      var timeRemains = 24*60*60*1000*7-timeSpend;
-                     console.log('time now===>', timeRemains);
+                    //  console.log('time now===>', timeRemains);
                         if(json.responseCode==200){
                           if(json.result[0].userBond==true){
                             if(timeRemains>0)
@@ -136,21 +143,36 @@ export default class Home extends Component {
     transferBonds=async()=>{
       this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Transfering...'});
       const body = JSON.stringify({userId:this.state._id});
-       WebApi.postApi_trade('tranferBondAmountToEscrow', body)
-       this.getBonds();
+       await WebApi.postApi_trade('tranferBondAmountToEscrow', body)
+       .then(response => response.json())
+       .then(json => {
+          this.setState({loading:false});
+            console.log('Response from transfer bonds===>', json);
+               if(json.responseCode==200){
+                this.getBonds();
+              }else{
+                 this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
+               }
+           })
+           .catch(error => {
+                console.log('error==>' , error)
+                this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error});
+           });
+
+       
       }
 
     retrive=async()=>{
-      this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Retriving...'});
+      this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Retrieving...'});
       const body = JSON.stringify({userId:this.state._id});
        await WebApi.postApi_trade('returnBondAmountFromEscrow', body)
            .then(response => response.json())
                 .then(json => {
                    this.setState({loading:false});
-                     // console.log('Response from retrive bonds===>', json);
-                       this.userDetails();
+                     console.log('Response from retrive bonds===>', json);
                         if(json.responseCode==200){
                           this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
+                          this.userDetails();
                         }else{
                           this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
                         }
@@ -161,7 +183,6 @@ export default class Home extends Component {
                     });
     }
 
-
   render() {
 
       const title = this.props.navigation.getParam('title', 'Trade');
@@ -170,21 +191,20 @@ export default class Home extends Component {
     
     return (
       <View style={Styles.body}>
-       <Header title={this.state.title} menuCheck="true" rightIcon={true} data={this.props} style={Styles.header}/>
+       <Header title={this.state.title} menuCheck="true" rightIcon={false} data={this.props} style={Styles.header}/>
         <ProgressBar
           title={this.state.loadingTitle}
           message={this.state.loadingMessage}
           visible={this.state.loading}
           close={this.stopLoading}
         />
-        <ScrollView style={{flex:0.8}} keyboardShouldPersistTaps={'always'}>
+        <ScrollView style={{flex:1}} keyboardShouldPersistTaps={'always'}>
          <View style={Styles.mainView}>
           {this.state.title=='Trade' ? (
 
           <View style={Styles.container}>
-            <View style={Styles.head}>
-              <Text style={[Styles.heading,{fontSize:Utils.textSize}]}>Trade Dashboard</Text>
-              <Icon name="chevron-down" style={Styles.rightIcon} onPress={()=>this.transferBonds()}/>
+            <View style={[Styles.head, {width:'95%', borderRadius:5, alignSelf:'center', alignItems:'center', justifyContent:'center'}]}>
+              <Text style={[{color:Utils.colorWhite, fontSize:Utils.headSize}]}>Trade Dashboard</Text>
             </View>
             <View style={Styles.detailBody}>
               <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('OpenTrade', {'transfer':!this.state.transfer})}>
@@ -221,11 +241,12 @@ export default class Home extends Component {
                   <Icon name="chevron-right" style={[Styles.rightIcon, {color:'#000'}]} />
                 </View>
               </TouchableHighlight>
+
             </View>
-            <View style={{position:'absolute', bottom:0, width:'100%'}}>
+            <View style={{position:'absolute', bottom:20, width:'100%'}}>
               {this.state.retrive && (
                 <View style={{width:'100%', alignItems:'center'}}>
-                  <Text style={{fontSize:Utils.subHeadSize, marginHorizontal:15}}>Transfer bonds for your ads. to be visible , you can retrieve after 7 days</Text>
+                  <Text style={{fontSize:Utils.subHeadSize, marginHorizontal:15}}>Transfer bonds for your ads. to be visible, you can retrieve after 7 days</Text>
                       <CountDown
                           style={{marginTop:-10, marginLeft:10}}
                           until={this.state.timer}
@@ -233,10 +254,10 @@ export default class Home extends Component {
                           onFinish={() => this.setState({timerState:false})}
                           digitStyle={{marginHorizontal:-7}}
                           digitTxtStyle={{color:Utils.colorBlack, marginBottom:-20, fontWeight:'normal'}}
-                          timeToShow={['D',':','H',':', 'M',':', 'S']}
-                          timeLabels={{d:'DD',h:'HH', m: 'MM', s: 'SS'}}
+                          timeToShow={['D',':','H',':', 'M']}
+                          timeLabels={{d:'DD',h:'HH', m: 'MM'}}
                         />
-                  <TouchableHighlight underlayColor='none' style={Styles.buttonGreen} onPress={()=>{if(!this.state.timerState) this.retrive();}}>
+                  <TouchableHighlight underlayColor='none' style={Styles.buttonGreen} onPress={()=>{if(this.state.timer<1) this.retrive();}}>
                     <View style={{flexDirection:'row', alignItems:'center'}}>
                       <Text style={{fontSize:Utils.subHeadSize}}>Retrieve </Text>
                     </View>
@@ -256,8 +277,8 @@ export default class Home extends Component {
           ):(
 
           <View style={Styles.container}>
-             <View style={Styles.head}>
-               <Text style={[Styles.heading, {fontSize:Utils.textSize}]}>On this page you can view and manage your profile</Text>
+            <View style={[Styles.head, {width:'95%', borderRadius:5, alignSelf:'center', alignItems:'center', justifyContent:'center'}]}>
+               <Text style={[Styles.heading, {fontSize:Utils.headSize}]}>On this page you can manage your profile</Text>
              </View>
              <View style={Styles.detailBody}>
               <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('BasicUser')}>
@@ -286,7 +307,7 @@ export default class Home extends Component {
               </TouchableHighlight>
               <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('SetRealName')}>
                 <View style={Styles.category}>
-                  <Text style={Styles.categoryText}>Set Real Name</Text>
+                  <Text style={Styles.categoryText}>Change Profile Picture</Text>
                   <Icon name="chevron-right" style={[Styles.rightIcon, {color:'#000'}]} />
                 </View>
               </TouchableHighlight>
@@ -298,11 +319,11 @@ export default class Home extends Component {
               </TouchableHighlight>
               {this.state.dropDown && (
                 <TouchableHighlight underlayColor='none' onPress={()=>this.props.navigation.navigate('TradeDetail', {role:'open'})}>
-                  <View style={Styles.whiteCard}>
-                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('UserDetails', {_id:this.state._id})}>Personal info</Text>
-                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('LoginHistory')}>Login history</Text>
-                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('AllTrade')}>Trade history</Text>
-                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('Wallet')}>Transaction history</Text>
+                  <View style={[Styles.whiteCard, {backgroundColor:Utils.colorGray, borderRadius:10, paddingLeft:20}]}>
+                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('UserDetails', {_id:this.state._id})}>֎  Personal info</Text>
+                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('LoginHistory')}>֎   Login history</Text>
+                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('AllTrade')}>֎   Trade history</Text>
+                    <Text style={Styles.cardText} onPress={()=>this.props.navigation.navigate('Wallet')}>֎   Transaction history</Text>
                   </View>
                 </TouchableHighlight>
               )}
@@ -318,7 +339,7 @@ export default class Home extends Component {
                   <Icon name="chevron-right" style={[Styles.rightIcon, {color:'#000'}]} />
                 </View>
               </TouchableHighlight>
-
+  
              </View>            
           </View>
           )}

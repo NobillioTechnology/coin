@@ -27,7 +27,7 @@ class Adapter extends Component {
                                         {this.props.type=='r' ? (
                                             <Text style={[css.itemlebal, {flex:0.4}]}>Received Amount:</Text>
                                         ):(
-                                            <Text style={[css.itemlebal, {flex:0.4}]}>Send Amount:</Text>
+                                            <Text style={[css.itemlebal, {flex:0.4}]}>Sent Amount:</Text>
                                         )}
                                         <Text style={[css.boldText, {flex:0.6}]}>{this.props.amount}</Text>
                                     </View>

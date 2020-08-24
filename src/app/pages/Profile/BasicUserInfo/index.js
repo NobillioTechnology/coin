@@ -4,13 +4,9 @@ import {
 } from 'react-native';
 import Styles from './style'
 import Header from '../../Header'
-import ScrollableTabView,{ScrollableTabBar } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../../Footer';
 import Utils from '../../Utils';
-import CustomDialog from '../../CustomDialog';
-import utils from '../../Utils';
-import RNPickerSelect from 'react-native-picker-select';
 import WebApi from '../../../Common/WebApi';
 import ProgressBar from '../../ProgressBar';
 import DropDown from '../../DropDown';

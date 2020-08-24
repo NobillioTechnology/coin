@@ -60,7 +60,7 @@ class Adapter extends Component {
                                 <Text style={css.boldText}>{this.props.limit}</Text>
                             </View>
                             <View style={{flexDirection:'row', justifyContent:'flex-end', flex:0.5}}>
-                                <TouchableHighlight underlayColor='none' onPress={()=>this.props.editAction(this.props.id)}>
+                                <TouchableHighlight underlayColor='none' onPress={()=>this.props.editAction(this.props.id, this.props.country, this.props.payment, this.props.currency)}>
                                     <View style={css.itemEditButtonView}>
                                         <Text style={css.itemEditButton}>Edit</Text>
                                     </View>
@@ -78,7 +78,7 @@ class Adapter extends Component {
                     <TouchableHighlight underlayColor='none' onPress={()=>this.props.openTrade(this.props.tradeId)}>
                         <View style={{margin:5}}>
                             <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
-                                <Text style={[css.itemStatus, {color:Utils.colorBlue}]}>{this.props.username} </Text>
+                                <Text style={[css.itemStatus, {color:Utils.colorDarkBlue, fontWeight:'bold'}]}>{this.props.username} </Text>
                                 <Text style={css.itemCntry}>{this.props.bitcoin}</Text>
                             </View>
                             <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
@@ -144,7 +144,7 @@ class Adapter extends Component {
                             <TouchableHighlight underlayColor='none' onPress={()=>this.props.openTrade(this.props.id)}>
                                 <View style={{margin:5}}>
                                     <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
-                                        <Text style={[css.itemStatus, {color:Utils.colorBlue}]}>{this.props.username} </Text>
+                                        <Text style={[css.itemStatus, {color:Utils.colorDarkBlue, fontWeight:'bold'}]}>{this.props.username} </Text>
                                         <Text style={css.itemCntry}>{this.props.bitcoin}</Text>
                                     </View>
                                     <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
@@ -161,7 +161,7 @@ class Adapter extends Component {
                                     </View>
                                     <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
                                         <Text style={[css.itemlebal, {flex:0.4}]}>Trade Fee:</Text>
-                                        <Text style={[css.boldText, {flex:0.4}]}>{this.props.fee}</Text>
+                                        <Text style={[css.boldText, {flex:0.4}]}>{this.props.myName==this.props.userName ? this.props.fee : '0' }</Text>
                                     </View>
                                     <View style={{flexDirection:'row', margin:10, alignItems:'center'}}>
                                         <Text style={[css.itemlebal, {flex:0.4}]}>Fiat:</Text>

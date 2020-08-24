@@ -16,7 +16,8 @@ export default class Footer extends Component {
         selected:props.selected,
         _id:null,
         noti:false,
-        count:0
+        count:0,
+        didUpdate:false,
       };
   }
 
@@ -26,7 +27,7 @@ export default class Footer extends Component {
       this.props.navigation.navigate('Wallet');
     }
     else if(val=='Trade'){
-      this.props.navigation.navigate('Trade', {title:'Trade'})
+      this.props.navigation.navigate('Trade', {'title':'Trade'})
     }
     else if(val == 'security'){
       this.props.navigation.navigate('Security')
@@ -35,7 +36,7 @@ export default class Footer extends Component {
       this.props.navigation.navigate('Notification');
     }
     else if(val == 'Profile'){
-      this.props.navigation.navigate('Trade', {title:'Profile'})
+      this.props.navigation.navigate('Trade', {'title':'Profile'})
     }
   }
 
@@ -46,14 +47,11 @@ export default class Footer extends Component {
   componentDidMount=async()=>{
     const _id = await AsyncStorage.getItem(Utils._id);
     this.setState({_id:_id, count:0, noti:false});
- 
-    if(this.props.double!=undefined)
-      socket.emit('initChat', { userId:this.state._id});
- 
+  
     socket.on('receivemessage', (resp) => {
       // this.setState({noti:true, count:this.state.count+1});
     })
-      if(this.props.double!=undefined)
+      if(this.props.double==undefined)
       socket.emit('notificationList', {
         userId:this.state._id,
       })
@@ -61,18 +59,23 @@ export default class Footer extends Component {
     socket.on('notificationList', (resp) => {
       this.setState({count:0, noti:false});
       console.log('notification from footer====>')
+      var temp = 0, noti=false;
       resp.succ.map((item)=>{
-        // console.log('seen from notification====>', item._id.isSeen);
-        if(item._id.isSeen==false)
-          this.setState({noti:true, count:this.state.count+1});
-      })
+        if(item._id.isSeen==false && item._id.receiverId==this.state._id){
+              temp=temp+1;
+              noti=true;
+            console.log('receiverId====>', item._id.receiverId);
+            console.log('msg====>', item.message);
+            console.log('Seen====>', item._id.isSeen);
+          }
+          })
+        this.setState({noti:noti, count:temp});
     })
   }
 
   componentWillUnmount(){
     this.setState({noti:false, count:0});
   }
-  
 
   render(){
      const selected = this.props.selected;
@@ -129,7 +132,7 @@ export default class Footer extends Component {
                 {this.state.selected=='notification' ? (
                 <View style={styles.icon}>
                 {this.state.noti && (
-                  <View style={{backgroundColor:Utils.colorGreen, position:'absolute', right:20, zIndex:999, width:20, height:20, borderRadius:10, alignItems:'center', justifyContent:'center'}}>
+                  <View style={{backgroundColor:Utils.colorRed, position:'absolute', right:20, zIndex:999, width:20, height:20, borderRadius:10, alignItems:'center', justifyContent:'center'}}>
                     <Text style={{color:Utils.colorWhite}}>{this.state.count}</Text>
                   </View>
                 )}
@@ -138,7 +141,7 @@ export default class Footer extends Component {
                 ):(
                 <View style={styles.icon}>
                   {this.state.noti && (
-                  <View style={{backgroundColor:Utils.colorGreen, position:'absolute', right:20, zIndex:999, width:20, height:20, borderRadius:10, alignItems:'center', justifyContent:'center'}}>
+                  <View style={{backgroundColor:Utils.colorRed, position:'absolute', right:20, zIndex:999, width:20, height:20, borderRadius:10, alignItems:'center', justifyContent:'center'}}>
                     <Text style={{color:Utils.colorWhite}}>{this.state.count}</Text>
                   </View>
                 )}

@@ -49,6 +49,8 @@ export default class Home extends Component {
 
     componentDidMount=async()=>{
       BackHandler.addEventListener('hardwareBackPress', this.handleBack);
+      const _id = await AsyncStorage.getItem(Utils._id);
+      this.setState({_id:_id});
     }
 
     componentWillUnmount(){
@@ -78,7 +80,9 @@ export default class Home extends Component {
    stopLoading(){
      if(this.state.loading)
        this.setState({loading:false});
-   }
+     if(this.state.loadingTitle=='Success')
+       this.props.navigation.navigate('Home');
+  }
   selectImage(){
     if(!this.state.imageSelector)
       this.setState({imageSelector:true});
@@ -95,7 +99,10 @@ export default class Home extends Component {
 
   launchCamera = () => {
     let options = {
-      storageOptions: {
+      quality:1, 
+      maxWidth: 1000, 
+      maxHeight: 1000,
+     storageOptions: {
         skipBackup: true,
         path: 'images',
       },
@@ -120,7 +127,7 @@ export default class Home extends Component {
       } else {
                 this.setState({
                 file: 'data:image/png;base64,'+response.data,
-                // fileName:response.fileName,
+                fileName:response.fileName,
               });
           }
     });
@@ -129,6 +136,9 @@ export default class Home extends Component {
 
   launchImageLibrary = () => {
     let options = {
+      quality:1, 
+      maxWidth: 1000, 
+      maxHeight: 1000,
       storageOptions: {
         skipBackup: true,
         path: 'images',
@@ -151,7 +161,7 @@ export default class Home extends Component {
       } else {
               this.setState({
                 file: 'data:image/png;base64,'+response.data,
-                // fileName:response.fileName,
+                fileName:response.fileName,
               });
         }
     });
@@ -195,9 +205,8 @@ export default class Home extends Component {
                     this.setState({loading:false});
                       console.log('Response from contactUs===>', json);
                           if(json.responseCode==200){
-                            this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
-                            this.props.navigation.navigate('Home');
-                          }else{
+                            this.setState({loading:true, loadingTitle:'Success', loadingMessage:json.responseMessage});
+                           }else{
                             this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
                           }
                       })

@@ -109,9 +109,9 @@ export default class Home extends Component {
                 <TouchableHighlight underlayColor='none' onPress={()=>this.flipLoginGuard()}>
                   <View style={this.state.loginGuard==false ? Styles.buttonRed : Styles.buttonGreen}>
                     {this.state.loginGuard==false ? (
-                      <Text style={Styles.disbleText}>DISABLED AUTHENTICATOR</Text>
+                      <Text style={Styles.disbleText}>AUTHENTICATOR DISABLED</Text>
                       ):(
-                       <Text>ENABLED AUTHENTICATOR</Text>                    
+                       <Text>AUTHENTICATOR ENABLED</Text>                    
                       )
                     }
                   </View>

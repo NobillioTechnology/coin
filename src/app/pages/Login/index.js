@@ -152,7 +152,7 @@ export default class Login extends Component {
    login=async()=>{
        if(this.state.name!=='' && this.state.validateName){
           if(this.state.password!=='' && this.state.validatePassword){
-            // if(this.state.captchaDone){
+            if(this.state.captchaDone){
              this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Loging ln...'});
               const body= await JSON.stringify({
                         email:this.state.name,
@@ -189,8 +189,8 @@ export default class Login extends Component {
                          console.log('error==>' , error)
                          this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error});
                    });
-            // }else
-            //  this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Please complete the Captcha!', validCaptcha:false});  
+            }else
+             this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Please complete the Captcha!', validCaptcha:false});  
           }else{
              this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Please enter valid password!'});
            }

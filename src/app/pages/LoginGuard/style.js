@@ -39,7 +39,8 @@ export default StyleSheet.create({
 		width:'70%',
 		alignSelf:'center',
 		alignItems:'center',
-		justifyContent:'center'
+		justifyContent:'center',
+		borderRadius:10,
 	},
 	buttonGreen:{
 		backgroundColor:Utils.colorGreen,
@@ -49,7 +50,8 @@ export default StyleSheet.create({
 		width:'70%',
 		alignSelf:'center',
 		alignItems:'center',
-		justifyContent:'center'
+		justifyContent:'center',
+		borderRadius:10
 	},
 	disbleText:{
 		color:Utils.colorWhite

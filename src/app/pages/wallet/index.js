@@ -141,7 +141,7 @@ export default class Wallet extends Component {
   render() {
     return (
       <View style={Styles.body}>
-       <Header title="Wallet" menuCheck="true" rightIcon={true} data={this.props} style={Styles.header}/>
+       <Header title="Wallet" menuCheck="true" rightIcon={false} data={this.props} style={Styles.header}/>
         <ProgressBar
           title={this.state.loadingTitle}
           message={this.state.loadingMessage}
@@ -168,7 +168,7 @@ export default class Wallet extends Component {
                     <Image style={Styles.line}/>
                     <Text style={Styles.textLabel}>{this.state.totalSend}</Text>
                   </View>
-                  <View style={[Styles.columnTotal, {flex:0.45}]}>
+                  <View style={[Styles.columnTotal]}>
                     <Text style={Styles.textValue}>Total Withdrawal Fee</Text>
                     <Image style={Styles.line}/>
                     <Text style={Styles.textLabel}>{this.state.totalWithdra}</Text>

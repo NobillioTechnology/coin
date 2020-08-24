@@ -17,7 +17,7 @@ class Adapter extends Component {
                     <View style={{margin:5}}>
                         <View style={{flexDirection:'row', margin:10}}>
                                 <View style={{}}>
-                                    <Text style={[css.itemStatus, {color:Utils.colorBlue}]} onPress={()=>this.props.userProfile(this.props.userId)}>{this.props.username} </Text>
+                                    <Text style={[css.itemStatus, {color:Utils.colorDarkBlue, fontWeight:'bold'}]} onPress={()=>this.props.userProfile(this.props.userId)}>{this.props.username} </Text>
                                     <View style={{flexDirection:'row', marginTop:5, alignItems:'center'}}>
                                         {this.props.status.substring(0,4)=='Seen' && (
                                             <Image style={{backgroundColor:Utils.colorOrange, width:15, height:15, marginRight:10, borderRadius:20}} />

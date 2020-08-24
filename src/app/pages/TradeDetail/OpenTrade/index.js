@@ -65,7 +65,7 @@ export default class Home extends Component {
              this.setState({refreshing:false, loadingMore:false});
                // console.log('Response from OpenTrades===>', json);
                   if(json.responseCode==200){
-                      // console.log('Modified json=====>', json.result.docs)
+                      console.log('Modified json=====>', json.result.docs)
                       if(json.result.pages==pageNumber)
                             this.setState({loadingDisabled:true});
 
@@ -187,8 +187,9 @@ export default class Home extends Component {
  
    }
 
-   editAction(id){
-       this.props.navigation.navigate('EditAd', {id:id});
+   editAction(id, con, pay, curr){
+      console.log('curr from open====>', curr);
+       this.props.navigation.navigate('EditAd', {id:id, 'con':con, 'pay':pay, 'curr':curr});
    }
 
    detailsAction=async(id)=>{
@@ -261,12 +262,15 @@ export default class Home extends Component {
                             status={this.state.dataToggle[index].status}
                             type={item.type_of_trade_original}
                             method={item.payment_method}
-                            bitcoin={this.refineBtc(parseFloat(item.price_equation).toFixed(8))}
+                            bitcoin={this.refineBtc(parseFloat(item.price_equation).toFixed(2))}
                             amount={item.toPay.toFixed(2)}
                             limit={item.createdAt.substring(11,16)+', '+item.createdAt.substring(0,10)}
                             toggleStatus={this.toggleStatus}
                             editAction={this.editAction}
                             detailsAction={this.detailsAction}
+                            country={item.location}
+                            payment={item.payment_method}
+                            currency={item.currency_type}
                           />
                       </View>
                      }

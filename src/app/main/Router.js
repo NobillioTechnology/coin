@@ -62,7 +62,7 @@ const mainNavigator = createDrawerNavigator({
               headerShown:false,
               drawerLabel: "Home",
               drawerIcon: ({ tintColor }) => (
-                <Icon name="home" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+                <Icon name="home" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
               ),
           },
     },
@@ -72,7 +72,7 @@ const mainNavigator = createDrawerNavigator({
         headerShown:false,
         drawerLabel: "Youtube Tutorial",
           drawerIcon: ({ tintColor }) => (
-            <Icon name="youtube" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="youtube" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),
       }
     },
@@ -82,7 +82,7 @@ const mainNavigator = createDrawerNavigator({
         headerShown:false,
         drawerLabel: 'Latest News',
         drawerIcon:({tintColor})=>(
-            <Icon name="rss-square" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="rss-square" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),
       },
     },
@@ -92,7 +92,7 @@ const mainNavigator = createDrawerNavigator({
         headerShown:false,
         drawerLabel: 'Privacy Policy',
         drawerIcon:({tintColor})=>(
-            <Icon name="user-secret" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="user-secret" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),
       },
     },
@@ -102,7 +102,7 @@ const mainNavigator = createDrawerNavigator({
         headerShown:false,
         drawerLabel:'Blog',
         drawerIcon:({tintColor})=>(
-            <Icon name="id-card" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="id-card" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),
       },
     },
@@ -110,9 +110,9 @@ const mainNavigator = createDrawerNavigator({
       screen:HelpScreen,
       navigationOptions:{
         headerShown:false,
-        drawerLabel:'Help',
+        drawerLabel:'F A Q',
         drawerIcon:({tintColor})=>(
-            <Icon name="question-circle" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="question-circle" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),
       },
     },
@@ -122,7 +122,7 @@ const mainNavigator = createDrawerNavigator({
         headerShown:false,
         drawerLabel:'About Us',
         drawerIcon:({tintColor})=>(
-            <Icon name="users" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="users" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),    
       }
     },
@@ -132,7 +132,7 @@ const mainNavigator = createDrawerNavigator({
         headerShown:false,
         drawerLabel:'Share App',
         drawerIcon:({tintColor})=>(
-            <Icon name="share-alt" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="share-alt" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),    
       }
     },
@@ -142,7 +142,7 @@ const mainNavigator = createDrawerNavigator({
         headerShown:false,
         drawerLabel:'Contact Us',
         drawerIcon:({tintColor})=>(
-            <Icon name="phone" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+            <Icon name="phone" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
           ),    
       }
     },
@@ -155,6 +155,13 @@ const mainNavigator = createDrawerNavigator({
     },
     Security:{
       screen:SecurityScreen,
+      navigationOptions:{
+        headerShown:false,
+        drawerLabel:<Hidden/>
+      }
+    },
+    Notification:{
+      screen:NotificationScreen,
       navigationOptions:{
         headerShown:false,
         drawerLabel:<Hidden/>
@@ -173,7 +180,7 @@ const mainNavigator = createDrawerNavigator({
               headerShown:false,
               drawerLabel: "Logout",
               drawerIcon: ({ tintColor }) => (
-                <Icon name="undo" style={{ color: tintColor, fontSize:20, color:Utils.colorDarkBlue}} />
+                <Icon name="undo" style={{ color: tintColor, fontSize:20, color:Utils.colorBlack}} />
               ),
       },
     },
@@ -307,12 +314,6 @@ const PublicRoute = createStackNavigator({
     },
     DetailsAd:{
       screen:DetailsAdScreen,
-      navigationOptions:{
-        headerShown:false
-      }
-    },
-    Notification:{
-      screen:NotificationScreen,
       navigationOptions:{
         headerShown:false
       }

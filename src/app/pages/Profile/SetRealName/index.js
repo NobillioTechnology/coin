@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  Text, View, Image, TextInput, ScrollView, Dimensions, TouchableHighlight, Modal, BackHandler, AsyncStorage
+  Text, View, Image, TextInput, ScrollView, Dimensions, TouchableHighlight, Modal, AsyncStorage
 } from 'react-native';
 import Styles from './style'
 import Header from '../../Header'
@@ -56,6 +56,7 @@ export default class Home extends Component {
     if(!this.state.imageSelector && this.state.fileData=='')
     this.setState({imageSelector:true});
   }
+  
   resetImage(){
     this.setState({
       imageSelector:false,
@@ -67,6 +68,9 @@ export default class Home extends Component {
 
   launchCamera = () => {
     let options = {
+      quality:1, 
+      maxWidth: 1000, 
+      maxHeight: 1000,
       storageOptions: {
         skipBackup: true,
         path: 'images',
@@ -107,6 +111,9 @@ export default class Home extends Component {
 
   launchImageLibrary = () => {
     let options = {
+      quality:1, 
+      maxWidth: 1000, 
+      maxHeight: 1000,
       storageOptions: {
         skipBackup: true,
         path: 'images',
@@ -139,7 +146,7 @@ export default class Home extends Component {
           fileName:response.fileName,
           selectImage:true,
         });
-        console.log('fileData======================>', this.state.fileData.substring(this.state.fileData.length-50, this.state.fileData.length));
+        console.log('fileData======================>', this.state.fileData.substring(0, 50));
       }
     });
 
@@ -188,11 +195,11 @@ export default class Home extends Component {
         this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Uploading...'});
        await WebApi.uploadProfile(this.state.fileData)
             .then(response => response.json())
-                .then(json => {
+              .then(json => {
                    this.setState({loading:false});
                      console.log('Response from uploadProfile===>', json);
                         if(json.responseCode==200){
-                            this.setState({selectImage:false, loading:true, loadingTitle:'Alert', loadingMessage:'Updated successfully'});
+                            this.setState({selectImage:false, loading:true, loadingTitle:'Success', loadingMessage:'Updated successfully'});
                             this.resetImage();
                         }else{
                             this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
@@ -207,8 +214,6 @@ export default class Home extends Component {
     else
       this.setState({selectImage:false});
   }
-
-
 
   render() {
     return (
@@ -244,7 +249,7 @@ export default class Home extends Component {
                   <TouchableHighlight underlayColor='none' onPress={()=>this.selectImage()}>
                     <View style={this.state.selectImage==false ? Styles.textInputError : Styles.textInput}>
                       <Text style={{fontSize:Utils.subHeadSize, color:Utils.colorGray}}>{this.state.fileName}</Text>
-                       <Icon name={this.state.fileData=='' ? 'paperclip' : 'close'} style={Styles.rightIcon} onPress={()=>this.resetImage()}/>
+                       <Icon name={this.state.fileData=='' ? 'paperclip' : 'close'} style={[Styles.rightIcon, {width:30, height:30, textAlign:'center', textAlignVertical:'center'}]} onPress={()=>{if(this.state.fileData!='')this.resetImage();else this.selectImage()}}/>
                     </View>
                   </TouchableHighlight>
 

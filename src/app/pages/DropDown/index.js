@@ -27,7 +27,8 @@ export default class CustomDialog extends Component {
               onRequestClose={ () => { this.props.closeDrop()}}>
                  <View style={Styles.dialogue}>
                   <View style={Styles.dialogueContainer}>
-                    <ScrollView style={{width:'100%'}}>
+                    <Icon name='close' style={{fontSize:24, color:Utils.colorBlack, position:'absolute', right:10, top:5}} onPress={()=>this.props.closeDrop()}/>
+                    <ScrollView style={{width:'100%', marginTop:20}}>
                       {this.props.items.map((item, index)=>{
                         return(
                             <TouchableHighlight style={{width:'100%'}} onPress={()=>this.props.choose(item, index)} underlayColor={Utils.colorGreen}>

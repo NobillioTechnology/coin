@@ -13,6 +13,7 @@ import WebApi from '../../Common/WebApi';
 import ProgressBar from '../ProgressBar';
 import {QRscanner} from 'react-native-qr-scanner';
 import DropDown from '../DropDown';
+import SearchableDropdown from 'react-native-searchable-dropdown';
 
 
 export default class Home extends Component {
@@ -26,7 +27,7 @@ export default class Home extends Component {
         balance:'',
         loading: false,
         loadingTitle:'Please Wait',
-        loadingMessage:"Logining...",
+        loadingMessage:"Loading...",
         receivingAddress:'', validAddress:true, validAmount:true, validAmountBtc:true, validDesc:true,
         amountBtc:'', amount:'0.00', desc:'',
         scannerView: false, flashMode: false, zoom: 0.2, fee:'', dropDown:false, loaderA:false, loaderF:false,
@@ -43,6 +44,7 @@ export default class Home extends Component {
     this.setState({_id:await AsyncStorage.getItem(Utils._id)});
     this.getProfile();
   }
+
   componentWillUnmount() {
       BackHandler.removeEventListener('hardwareBackPress', this.handleBack);
   }
@@ -162,7 +164,7 @@ export default class Home extends Component {
                     if(json.responseCode==200){
                       const data = json.result
                       this.setState({
-                        loading:true, loadingTitle:'Alert', loadingMessage:json.message,
+                        loading:true, loadingTitle:'Success', loadingMessage:'Withdrawal successful',
                         amountBtc:'',currency:'', desc:'', receivingAddress:'', amount:'0.00000' 
                       });
                       // this.props.navigation.goBack(null);
@@ -226,24 +228,37 @@ export default class Home extends Component {
   }
 
   selectCurrency=async(currency)=>{
-    this.setState({currency:currency, currencySelector:true, countrySelector:false, validCurrency:true});
-     var data = Utils.currency;
-     var out = [];
-    for (var i = 0; i<data.length; i++) {
+    var data =  Utils.currency;
+    var out = [];
+    this.setState({currency:currency, currencySelector:true, countrySelector:false, paymentMethodSelector:false, validCurrency:false});
+    // for (var i = 0; i<data.length; i++) {
+    //     if(data[i].label.substring(0, currency.length)==currency.toUpperCase())
+    //     out.push(data[i]);
+    //   }
+    //   console.log('Item====>after filter', currency.toUpperCase(), out);
 
-    if(data[i].label.substring(0, currency.length)==currency)
-        out.push(data[i]);
-      }
-     console.log(out)
-     this.setState({currencyData:out});
+      data.find((item)=>{
+        let fltMethod= item.label.toLowerCase().match(currency.toLowerCase())
+        if(fltMethod!=null){
+          out.push(item);
+        }
+      })
+  
+      await this.setState({currencyData:out});
   }
 
   selectedCurrency(val){
-    this.setState({currency:val, currencySelector:false, validCurrency:true});
+    this.setState({currency:val.value, currencySelector:false, validCurrency:true});
     this.priceEquation(this.state.amountBtc);
   }
 
-
+ refineBtc(btc){
+    const dot = btc.indexOf('.');
+    var beforeDot = btc.substring(0, dot);
+    var afterDot = btc.substring(dot, btc.length);
+    beforeDot = beforeDot.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return beforeDot+afterDot;
+  }
 
   render() {
 
@@ -274,9 +289,8 @@ export default class Home extends Component {
         )}
         <ScrollView style={{flex:0.8}} keyboardShouldPersistTaps={'always'}>
           <View style={Styles.container}>
-            <View style={Styles.head}>
+          <View style={[Styles.head, {width:'95%', borderRadius:5, alignSelf:'center', alignItems:'center', justifyContent:'center'}]}>
               <Text style={Styles.heading}>Barcode Details</Text>
-              <Icon name="chevron-down" style={Styles.rightIcon}/>
             </View>
             <View style={Styles.borderBody}>
               <View style={{flexDirection:'row', marginLeft:10}}>
@@ -295,7 +309,7 @@ export default class Home extends Component {
                 <Text style={[Styles.textValue, {fontWeight:'bold', color:Utils.colorBlack}]}>{this.state.sendUpTp} BTC</Text>
               </View>
             </View>
-            <Text style={Styles.textHeading}>Receiving Bitcion address:</Text>
+            <Text style={Styles.textHeading}>Receiving Bitcoin address:</Text>
             <View style={[this.state.validAddress ? Styles.borderBody : Styles.borderBodyError, {padding:-10, flexDirection:'row', alignItems:'center'}]}>
               <TextInput
                 style={{height:40, paddingHorizontal:10, flex:0.9}}
@@ -329,44 +343,57 @@ export default class Home extends Component {
 
             <Text style={Styles.textHeading}>Amount:</Text>
               <View style={{flexDirection:'row'}}>
-                <View style={[Styles.borderBody, {padding:-10, flex:0.5, alignItems:'center', justifyContent:'center', height:42, flexDirection:'row'}]}>
+                <View style={[Styles.borderBody, {height:45, marginBottom:0, flex:0.5, alignItems:'center', justifyContent:'center', flexDirection:'row'}]}>
                 {this.state.loaderA && (
                   <ActivityIndicator size={'small'} />
                 )}
-                <Text style={{fontSize:Utils.subHeadSize}}>{this.state.amount}</Text>
+                <Text style={{fontSize:Utils.subHeadSize}}>{this.refineBtc(this.state.amount)}</Text>
                 </View>
                 <View style={this.state.validCurrency ? Styles.pickerView : Styles.pickerViewError}>
-                  <View style={{flexDirection:'row'}}>
-                    <TextInput style={{paddingHorizontal:10, width:'100%'}}
-                              placeholder='Select Currency'
-                              onChangeText={(country)=>this.selectCurrency(country.toUpperCase())}
-                              value={this.state.currency}
-                              onFocus={() =>this.setState({currencySelector:true})}
+                  <SearchableDropdown
+                            style={[this.state.validCurrency ? Styles.countryView : Styles.countryViewError, {flex:1}]}
+                            onItemSelect={(item) => {this.selectedCurrency(item)}}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={Utils.currency}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Currency",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
                         />
-                    {/* <Icon name='sort-down' style={Styles.dropIcon}/> */}
-                  </View>
-                </View>
-              </View>
-              <ScrollView style={{width:'100%'}} keyboardShouldPersistTaps={'always'}>
-                    <View>
-                        {this.state.currencySelector==true && (
-                          <View>
-                            <View style={{width:'100%', backgroundColor:Utils.colorWhite, marginVertical:10, paddingTop:10}}>
-                              {this.state.currencyData.map((item, index)=>{
-                                return (
-                                  <View style={{width:'100%'}}>
-                                    <Text style={{color:Utils.colorBlack, paddingHorizontal:15, fontSize:Utils.subHeadSize}} onPress={()=>this.selectedCurrency(item.value)}>{item.label}</Text>
-                                    <Image style={{width:'100%', height:1, backgroundColor:Utils.colorGray, marginVertical:10}} />
-                                  </View>
-                                )
-                              })}
-                            </View>
-                          </View>
-                        )}
-                    </View>
-                  </ScrollView>
-              <TouchableHighlight underlayColor='none' onPress={()=>this.sendBTC()}>
-                <View style={Styles.submit}>
+                 </View>
+                 </View>
+              <TouchableHighlight underlayColor='none' onPress={()=>this.sendBTC()} style={Styles.submit}>
+                <View >
                   <Text style={{fontSize:Utils.subHeadSize}}>Continue</Text>
                 </View>
               </TouchableHighlight>

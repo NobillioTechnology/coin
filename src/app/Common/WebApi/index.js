@@ -28,7 +28,7 @@ export default class WebApi extends Component {
 	}
 
 	static postApi_user=async(url, body)=>{
-		// console.log(body);
+		console.log(body);
 		const token= await AsyncStorage.getItem(Utils.token);
 		const _id = await AsyncStorage.getItem(Utils._id);
 		// console.log('_id==', _id, '\n','token====>', token );
@@ -176,7 +176,10 @@ export default class WebApi extends Component {
 	static uploadProfile=async(image)=>{
 		const token= await AsyncStorage.getItem(Utils.token);
 		const _id = await AsyncStorage.getItem(Utils._id);
-		console.log('token===>', token);
+		console.log('token===>',JSON.stringify({
+			userId:_id,
+			image:image.substring(0, 50)
+		}) );
 		return fetch(baseUrl+user+'updateProfile', {
 				  method: 'POST',
 				  headers: {

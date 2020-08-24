@@ -43,14 +43,14 @@ export default StyleSheet.create({
 		borderWidth:1,
 		borderRadius:5,
 		borderColor:Utils.colorGray,
-		height:35,
+		height:45,
 		flex:0.5,
 	},
 	textValueInputError:{
 		borderWidth:2,
 		borderRadius:5,
 		borderColor:Utils.colorRed,
-		height:35,
+		height:45,
 		flex:0.5,
 	},
 	pickerView:{
@@ -79,8 +79,6 @@ export default StyleSheet.create({
 		borderWidth:1,
 		borderColor:Utils.colorGray,
 		marginTop:10,
-		width:'100%',
-		height:45
 	},
 	countryViewError:{
 		alignSelf:'center',
@@ -88,8 +86,6 @@ export default StyleSheet.create({
 		borderWidth:2,
 		borderColor:Utils.colorRed,
 		marginTop:10,
-		width:'100%',
-		height:45
 	},
 	fileView:{
 		marginVertical:10, 

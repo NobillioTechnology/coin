@@ -46,8 +46,8 @@ export default class Feedback extends Component {
    }
 
    handleBack(){
-     this.props.navigation.goBack(null);
-     return true;
+    //  this.props.navigation.goBack(null);
+    //  return true;
    }
   
   stopLoading(){
@@ -63,7 +63,7 @@ export default class Feedback extends Component {
                         feedbackTo:this.state._id,
                         feedbackType:'',
                         pageNumber:pageNumber,
-                        limit:50
+                        limit:10
                     });
          await WebAPi.postApi_feedback('getFeedbackList', body)
           .then(response => response.json())

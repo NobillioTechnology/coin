@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
 import {
-  Text, View, Image, TextInput, ScrollView, Dimensions, StyleSheet, TouchableHighlight, Picker, CheckBox, AsyncStorage
+  Text, View, Image, TextInput, ScrollView, Dimensions, TouchableHighlight, AsyncStorage
 } from 'react-native';
 import Styles from './style'
-import Header from '../../Header'
-import ScrollableTabView,{ScrollableTabBar } from 'react-native-scrollable-tab-view';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import Footer from '../../Footer';
+import Header from '../../Header';
 import Utils from '../../Utils';
-import CustomDialog from '../../CustomDialog';
 import utils from '../../Utils';
 import commonCss from '../../Utils/commonCss';
 import ProgressBar from '../../ProgressBar';
@@ -141,7 +137,7 @@ export default class Home extends Component {
                     .catch(error => {
                          this.setState({loading:false});
                          console.log('error==>' , error)
-                            this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error});
+                            this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! Something Went Wrong!'});
                     });
     }else{
       this.setState({validOldPass:false, loading:true, loadingTitle:'Alert', loadingMessage:'Enter Your Password!'});

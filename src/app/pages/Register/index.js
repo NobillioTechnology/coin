@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 import {
-  Text, View, Image, TextInput, ScrollView, StyleSheet, TouchableHighlight, CheckBox, BackHandler,
+  Text, View, Image, TextInput, ScrollView, StyleSheet, TouchableHighlight, CheckBox, BackHandler, Modal,
   Dimensions
 } from 'react-native';
 import Styles from './style'
@@ -16,6 +16,7 @@ import DeviceInfo from 'react-native-device-info';
 import ConfirmGoogleCaptcha from 'react-native-recaptcha-v2-enhanced';
 const siteKey = '6LfoW5kUAAAAANJBVkOkyyjm_OLB7NlCKpdJLo7c';
 const baseUrl = 'https://uat.coinbaazar.com/api/v1';
+import HTML from 'react-native-render-html';
 
 
 export default class Login extends Component {
@@ -31,6 +32,7 @@ export default class Login extends Component {
        name:'', email:'', password:'', confirmPass:'', agree:false,
        validateName:true, validateEmail:true, validatePassword:true, validateConfirmPass:true,
        captcha:true, validCaptcha:true, captchaDone:false,
+       termsModal:false, terms:'',
      }
      this.stopLoading=this.stopLoading.bind(this);
      this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
@@ -39,10 +41,10 @@ export default class Login extends Component {
    setPasswordType(){
        this.setState({passwordType:!this.state.passwordType})
    }
-
  
    componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButtonClick);
+    this.getTerms();
   }
 
   componentWillUnmount() {
@@ -59,6 +61,25 @@ export default class Login extends Component {
         return false;
     }
   }
+
+  getTerms=async()=>{
+    await WebApi.getPrivacyPolicy('TERMS')
+    .then(response => response.json())
+      .then(json => {
+          this.setState({loading:false});
+            console.log('Response from terms===>', json);
+              if(json.responseCode==200){
+                  this.setState({terms:json.succ.description});
+              }else{
+                this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
+              }
+          })
+          .catch(error => {
+                console.log('error==>' , error)
+                this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error});
+          });
+  }
+
 
    goToHome(){
     this.setState({loading:true});
@@ -191,6 +212,8 @@ export default class Login extends Component {
 
 
   render() {
+
+    console.log(this.state.termsModal);
       
       return (
 
@@ -207,7 +230,7 @@ export default class Login extends Component {
              <Image source={require('../../assets/img/logo.png')} style={Styles.logoForRegister}/>
              <View style={[Styles.subBody, Styles.shadow]}>
                <Text style={Styles.title}>REGISTER</Text>
-               <Text style={Styles.subtitle}>Create an Account and start usong your wallet.</Text>
+               <Text style={Styles.subtitle}>Create an Account and start using your wallet.</Text>
                <Text style={Styles.bottomLine}/>
                <View style={Styles.form}>
                  <TextInput
@@ -263,7 +286,7 @@ export default class Login extends Component {
                        value={this.state.agree}
                        onValueChange={()=>this.setState({agree:!this.state.agree})}
                      />
-                     <Text style={Styles.acceptLine}>I accept the <Text style={Styles.hyperLink}>T&C</Text> and <Text style={Styles.hyperLink}>Privacy policy</Text></Text>
+                     <Text style={Styles.acceptLine}>I accept the <Text style={Styles.hyperLink} onPress={()=>this.setState({termsModal:true})}>T&C</Text> and <Text style={Styles.hyperLink} onPress={()=>this.props.navigation.navigate('Privacy', {'from':'register'})}>Privacy policy</Text></Text>
                    </View>
 
                    <Text style={[Styles.loginButton, {width:'70%',alignSelf:'center', marginTop:10}]} onPress={()=>this.register()}>REGISTER</Text>
@@ -286,6 +309,31 @@ export default class Login extends Component {
          </View>
         )}
         </ScrollView>
+        <View style={{flex:1}}>
+        <Modal style={[Styles.dialogue]}
+              visible={this.state.termsModal}
+              transparent={true}
+              animationType={"fade"}
+              onRequestClose={ () => {this.setState({termsModal:false})}}>
+                <View style={Styles.dialogue}>
+                  <View style={Styles.dialogueContainer}>
+                      <ScrollView style={{flex:1, marginHorizontal:10, marginTop:20}}>
+                        <View>
+                            <Text style={{fontSize:Utils.subHeadSize+1, fontWeight:'bold', textAlign:'center'}}>Advertisement Rules And Requirements</Text>
+                            <View style={{flexDirection:'row', marginVertical:10}}>
+                              <HTML html={this.state.terms}/>
+                            </View>
+                          </View>
+                      </ScrollView>
+                      <TouchableHighlight onPress={()=>this.setState({termsModal:false})} style={Styles.ok}>
+                        <View>
+                            <Text style={{fontSize:Utils.headSize}}>Accept</Text>
+                        </View>
+                      </TouchableHighlight>
+                  </View>
+              </View>
+          </Modal>
+        </View>
       </View>
     );
   }

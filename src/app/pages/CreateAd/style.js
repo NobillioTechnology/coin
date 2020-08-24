@@ -18,7 +18,7 @@ export default StyleSheet.create({
 	heading:{
 		backgroundColor:Utils.colorDarkBlue,
 		color:Utils.colorWhite,
-		fontSize:Utils.subHeadSize,
+		fontSize:Utils.headSize,
 		width:'95%',
 		textAlign:'center',
 		alignSelf:'center'
@@ -32,7 +32,7 @@ export default StyleSheet.create({
 	},
 	radioText:{
 		marginTop:-5,
-		flex:0.4
+		flex:0.4,
 	},
 	itemlebal:{
 		color:Utils.colorDarkGray
@@ -46,9 +46,6 @@ export default StyleSheet.create({
 		borderRadius:5,
 		borderWidth:1,
 		borderColor:Utils.colorGray,
-		width:'100%',
-		flex:0.5,
-		height:40,
 		flexDirection:'row',
 		alignItems:'center'
 	},
@@ -57,10 +54,6 @@ export default StyleSheet.create({
 		borderRadius:5,
 		borderWidth:2,
 		borderColor:Utils.colorRed,
-		marginTop:10,
-		width:'100%',
-		flex:0.5,
-		height:40,
 		flexDirection:'row',
 		alignItems:'center'
 	},
@@ -94,7 +87,6 @@ export default StyleSheet.create({
 		marginTop:10
 	},
 	inputText:{
-		flex:0.5,
 		borderRadius:5,
 		borderWidth:1,
 		borderColor:Utils.colorGray,
@@ -149,11 +141,14 @@ export default StyleSheet.create({
 		fontSize:20,
 		marginTop:-30
 	},
+	bitAddress:{
+		textAlign:'center'
+	},
 	nextButton:{
 		backgroundColor:Utils.colorDarkBlue,
 		width:'21%',
 		height:40,
-		alignSelf:'flex-end',
+		alignSelf:'center',
 		marginRight:35,
 		textAlign:'center',
 		marginVertical:15,
@@ -179,7 +174,9 @@ export default StyleSheet.create({
 		width:'45%',
 		marginVertical:5,
 		marginHorizontal:20,
-		flexDirection:'row'
+		flexDirection:'row',
+		borderRadius:5,
+		borderStyle:'dotted'
 	},
 	cross:{
 		fontSize:Utils.headSize,
@@ -209,7 +206,7 @@ export default StyleSheet.create({
 	},
 	ok:{
 		alignSelf:'center', 
-		marginBottom:10,
+		marginVertical:10,
 		backgroundColor:Utils.colorGreen,
 		width:'50%',
 		alignItems:'center',
