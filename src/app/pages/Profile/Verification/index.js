@@ -1,0 +1,934 @@
+import React, { Component } from 'react';
+import {
+  Text, View, Image, TextInput, ScrollView, ImageBackground, TouchableHighlight, BackHandler, Modal
+} from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
+import Styles from './style'
+import Header from '../../Header'
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Utils from '../../Utils';
+import CommonCss from '../../Utils/commonCss';
+import WebApi from '../../../Common/WebApi';
+import ProgressBar from '../../ProgressBar';
+import DatePicker from 'react-native-datepicker';
+import ImagePicker from 'react-native-image-picker';
+import DropDown from '../../DropDown';
+import SearchableDropdown from 'react-native-searchable-dropdown';
+
+
+let options = {
+      title: 'Select Image',
+      customButtons: [
+        { name: 'customOptionKey', title: 'Choose Photo from Custom Option' },
+      ],
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+
+    const docList=[
+                {label:'Any Government ID', value:'Any Government ID'},
+                {label:'Passport', value:'Passport'},
+                {label:'Electoral Photo Identity Card', value:'Electoral Photo Identity Card'},
+          ]
+
+export default class Home extends Component {
+
+
+  constructor(props) {
+    super(props);
+      this.state={
+        title:'Verification',
+        _id:'',
+        imageSelector:false, imageCount:0, countrySelector:false, countryData:Utils.country,
+        loading:false,
+        loadingTitle:'Please Wait', loadingMessage:'loading...',
+        fName:'', lName:'', dob:'', country:'', docType:'Select Doc. Type', docId:'', file1Name:'Upload File(Scan copy of front side)', file1:'',
+        file2Name:'Upload File(Scan copy of back side)', file2:'', file3Name:'Please upload your Photo holding your ID', file3:'', city:'', address:'', pinCode:'',
+        validFName:true, validLName:true, validDob:true, validCountry:true, validDocType:true, validDocId:true,
+        validFile1:true, validFile2:true, validFile3:true, validCity:true, validAddress:true, validPinCode:true,
+        phone:'', validPhone:true, countryCode:'', validCountryCode:true, otpScreen:false,
+        otp1:'', otp2:'', otp3:'', otp4:'',
+        emailVerified:false,
+        phoneVerified:false,
+        identityVerified:false, kycStatus:'',
+        dropDown:false, dropItems:[], currentDrop:'',
+        color:require('../../../assets/img/bg.jpg'),
+        img:[require('../../../assets/img/bg.jpg'),
+        require('../../../assets/img/bg2.jpg'),
+        require('../../../assets/img/bg3.jpg'),
+        require('../../../assets/img/bg4.jpeg'),
+        require('../../../assets/img/bg5.jpg'),
+        require('../../../assets/img/bg6.jpeg')],
+      }
+      this.stopLoading=this.stopLoading.bind(this);
+      this.handleBack=this.handleBack.bind(this);
+      this.closeDrop=this.closeDrop.bind(this);
+      this.chooseDropItem=this.chooseDropItem.bind(this);
+    }
+
+    componentDidMount=async()=>{
+      BackHandler.addEventListener('hardwareBackPress', this.handleBack);
+      const _id = await AsyncStorage.getItem(Utils._id);
+      // const _id = "5faf98d88c3219599481f304";
+      this.setState({_id:_id}); 
+
+      const color = await AsyncStorage.getItem(Utils.colorUniversal);
+      if(color!==null){
+        if(color=='bg')
+          this.setState({color:this.state.img[0]});
+          if(color=='bg2')
+          this.setState({color:this.state.img[1]});
+          if(color=='bg3')
+          this.setState({color:this.state.img[2]});
+          if(color=='bg4')
+          this.setState({color:this.state.img[3]});
+          if(color=='bg5')
+          this.setState({color:this.state.img[4]});
+          if(color=='bg6')
+          this.setState({color:this.state.img[5]});
+      }
+      await this.getProfile(_id);
+
+    }
+    componentWillUnmount(){
+      BackHandler.removeEventListener('hardwareBackPress', this.handleBack);
+    }
+
+    handleBack(){
+     if(this.state.imageSelector){
+         this.setState({imageSelector:false});
+         return true;
+       }else{
+          this.props.navigation.goBack(null);
+          return true;
+      }
+    }
+
+   stopLoading(){
+     if(this.state.loading)
+       this.setState({loading:false});
+   }
+
+    getProfile=async(_id)=>{
+        this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Loading...'})
+         await WebApi.getProfile(_id)
+           .then(response => response.json())
+                .then(json => {
+                   this.setState({loading:false});
+                     console.log('Response from getProfile===>', json);
+                        if(json.responseCode==200){
+                            var kycStatus = json.result.kyc_status;
+                            if(json.result.verified_upload_docs)
+                              this.setState({identityVerified:false});
+                            else
+                              this.setState({identityVerified:true});
+
+                              this.setState({
+                                emailVerified:json.result.verified_email,
+                                phoneVerified:json.result.verified_phone,
+                                kycStatus:kycStatus
+                              })
+                        }else{
+                           this.setState({
+                             loading:true,
+                             loadingTitle:'Alert',
+                             loadingMessage:json.responseMessage
+                           })
+                        }
+                    })
+                    .catch(error => {
+                         console.log('error==>' , error)
+                           this.setState({
+                             loading:true,
+                             loadingTitle:'Alert',
+                             loadingMessage:'Oops! Something Went Wrong!'
+                           })
+                    });
+   }
+
+   verification=async()=>{
+     if(this.state.fName!=''){
+       if(this.state.lName!=''){
+         if(this.state.dob!=''){
+           if(this.state.country!=''){
+             if(this.state.docType!=''){
+               if(this.state.docId!=''){
+                 if(this.state.file1!=''){
+                   if(this.state.file2!=''){
+                     if(this.state.file3!=''){
+                        if(this.state.city!=''){
+                          if(this.state.address!=''){
+                              if(this.state.pinCode!='' && this.state.pinCode.length>5){
+                                  this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'uploading...'});
+                                  const body = JSON.stringify({
+                                                 _id:this.state._id,
+                                                  first_name:this.state.fName,
+                                                  last_name:this.state.lName,
+                                                  date_of_birth:this.state.dob,
+                                                  country:this.state.country,
+                                                  doc_name:this.state.docType,
+                                                  doc_id:this.state.docId,
+                                                  frontView:this.state.file1,
+                                                  backView:this.state.file2,
+                                                  bothView:this.state.file3,
+                                                  city:this.state.city,
+                                                  address:this.state.address,
+                                                  post_code:this.state.pinCode,
+                                            })
+                                  await WebApi.postApi_user('uploadKyc', body)
+                                     .then(response => response.json())
+                                        .then(json => {
+                                           this.setState({loading:false});
+                                             console.log('Response from verification===>', json);
+                                                if(json.responseCode==200){
+                                                 this.setState({
+                                                   loading:true,
+                                                   loadingTitle:'Success',
+                                                   loadingMessage:'Verification Updated!'
+                                                 });
+                                                 this.getProfile(this.state._id);
+                                                }else{
+                                                 this.setState({
+                                                   loading:true,
+                                                   loadingTitle:'Alert',
+                                                   loadingMessage:'Oops! '+json.responseMessage
+                                                 })
+                                                }
+                                            })
+                                            .catch(error => {
+                                                this.setState({loading:false});
+                                                 console.log('error==>' , error)
+                                                 this.setState({
+                                                   loading:true,
+                                                   loadingTitle:'Alert',
+                                                   loadingMessage:'Something Went Wrong! Please contact customer support'
+                                                 })
+                                            });
+
+                              }else{
+                                this.setState({
+                                  validPinCode:false,
+                                  loading:true, 
+                                  loadingTitle:'Alert',
+                                  loadingMessage:'Enter valid Pin Code!'
+                                });
+                              }
+                          }else{
+                             this.setState({
+                                validAddress:false,
+                                loading:true, 
+                                loadingTitle:'Alert',
+                                loadingMessage:'Enter a valid Address!'
+                              });
+                          }
+                        }else{
+                            this.setState({
+                              validCity:false,
+                              loading:true, 
+                              loadingTitle:'Alert',
+                              loadingMessage:'Enter a valid City!'
+                            });
+                        }
+                     }else{
+                        this.setState({
+                          validFile3:false,
+                          loading:true, 
+                          loadingTitle:'Alert', 
+                          loadingMessage:'Select your photo holding your ID!'
+                        });
+                     }
+                   }else{
+                      this.setState({
+                        validFile2:false,
+                        loading:true, 
+                        loadingTitle:'Alert', 
+                        loadingMessage:'Select scan copy of Back side!'
+                      });
+                   }
+                 }else{
+                    this.setState({
+                      validFile1:false,
+                      loading:true, 
+                      loadingTitle:'Alert', 
+                      loadingMessage:'Select scan copy of Front side!'
+                    });
+                 }
+               }else{
+                  this.setState({
+                    validDocId:false,
+                    loading:true, 
+                    loadingTitle:'Alert', 
+                    loadingMessage:'Enter a Valid Document Id!'
+                  });
+               }
+             }else{
+                this.setState({
+                  validDocType:false,
+                  loading:true, 
+                  loadingTitle:'Alert', 
+                  loadingMessage:'Select Doc. Type!'
+                });
+             }
+           }else{
+              this.setState({
+                validCountry:false,
+                loading:true, 
+                loadingTitle:'Alert', 
+                loadingMessage:'Select A Country!'
+              });
+           }
+         }else{
+           this.setState({
+               validDob:false,
+               loading:true, 
+               loadingTitle:'Alert', 
+               loadingMessage:'Select Your Date of birth!'
+            });
+         }
+       }else{
+         this.setState({
+           validLName:false,
+           loading:true, 
+           loadingTitle:'Alert', 
+           loadingMessage:'Enter Valid Last Name!'
+         });
+        }
+     }else{
+        this.setState({
+          validFName:false, 
+          loading:true, 
+          loadingTitle:'Alert', 
+          loadingMessage:'Enter Valid First Name!'
+        });
+      }
+ }
+
+ sendOtp=async()=>{
+   if(this.state.countryCode!=''){
+     if(this.state.phone!='' && this.state.validPhone){
+       this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Sending...', otp1:'', otp2:'', otp3:'', otp4:''});
+         await WebApi.sendOtpPhone(this.state.countryCode, this.state.phone)
+            .then(response => response.json())
+                .then(json => {
+                   this.setState({loading:false});
+                    //  console.log('Response from sendOTP===>', json);
+                        if(json.responseCode==200){
+                          console.log('otp sent ===>', json.responseCode);
+                          this.setState({
+                             otpScreen:true,
+                         });
+                        }else{
+                         this.setState({
+                           loading:true,
+                           loadingTitle:'Alert',
+                           loadingMessage:'Oops! '+json.responseMessage
+                         })
+                        }
+                    })
+                    .catch(error => {
+                         console.log('error==>' , error)
+                         this.setState({
+                           loading:true,
+                           loadingTitle:'Alert',
+                           loadingMessage:'Oops! '+error
+                         })
+                    });
+
+     }else
+       this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Enter A Valid Phone Number !', validPhone:false});
+   }else
+     this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Select Country Code!', validCountryCode:false});
+ }
+
+ verifyOtp=async()=>{
+   if(this.state.otp1!='' && this.state.otp2!='', this.state.otp3!='', this.state.otp4!=''){
+       const otp = this.state.otp1+this.state.otp2+this.state.otp3+this.state.otp4;
+       this.setState({loading:true, loadingTitle:'Please Wait', loadingMessage:'Sending...'});
+         await WebApi.verifyOtp(this.state.countryCode, this.state.phone, otp)
+            .then(response => response.json())
+                .then(json => {
+                   this.setState({loading:false});
+                     console.log('Response from verifyOtp===>', json);
+                        if(json.responseCode==200){
+                         this.setState({
+                             otpScreen:false,
+                             loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage
+                         });
+                         this.getProfile(this.state._id);
+                        }else{
+                         this.setState({
+                           loading:true,
+                           loadingTitle:'Alert',
+                           loadingMessage:'Oops! '+json.responseMessage
+                         })
+                        }
+                    })
+                    .catch(error => {
+                         console.log('error==>' , error)
+                         this.setState({
+                           loading:true,
+                           loadingTitle:'Alert',
+                           loadingMessage:'Oops! '+error
+                         })
+                    });
+
+   }else
+     this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Enter Valid Otp!'})
+ }
+
+ validatePhone=async(phone)=>{
+   await this.setState({phone:phone});
+   if(phone.length==10){
+      this.setState({validPhone:true});
+   }else
+     this.setState({validPhone:false});
+ }
+
+  selectImage(count){
+    if(!this.state.imageSelector)
+      this.setState({imageSelector:true, imageCount:count});
+  }
+
+  resetImage(file){
+    if(file==1){
+        this.setState({
+          imageSelector:false,
+            file1: '',
+            file1Name:'Upload File(Scan copy of front side)',
+            validFile1:false
+        });
+    }else if(file==2){
+      this.setState({
+          imageSelector:false,
+            file2: '',
+            file2Name:'Upload File(Scan copy of back side)',
+            validFile2:false
+        });
+    }else if(file==3){
+      this.setState({
+          imageSelector:false,
+            file3:'',
+            file3Name:'Please upload your Photo holding your ID',
+            validFile3:false
+        });
+    }
+  }
+
+  launchCamera = (imageCount) => {
+    let options = {
+      quality:1, 
+      maxWidth: 500, 
+      maxHeight: 500,
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+
+    ImagePicker.launchCamera(options, (response) => {
+      // console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+          this.handleBackButtonClick();
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+          this.handleBackButtonClick();
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+          this.handleBackButtonClick();
+      } else {
+        
+          if(imageCount==1){
+              this.setState({
+                file1: 'data:image/jpeg;base64,'+response.data,
+                file1Name:'Attached',
+                validFile1:true,
+                imageSelector:false
+              });
+          }else if(imageCount==2){
+              this.setState({
+                file2: 'data:image/jpeg;base64,'+response.data,
+                file2Name:'Attached',
+                validFile2:true,
+                imageSelector:false
+              });
+          }else if(imageCount==3){
+              this.setState({
+                file3: 'data:image/jpeg;base64,'+response.data,
+                file3Name:'Attached',
+                validFile3:true,
+                imageSelector:false
+              });
+          }
+      }
+    });
+
+  }
+
+  launchImageLibrary = (imageCount) => {
+    let options = {
+      quality:1, 
+      maxWidth: 500,
+      maxHeight: 500,
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+
+    ImagePicker.launchImageLibrary(options, (response) => {
+      // console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+          if(imageCount==1){
+              this.setState({
+                file1: 'data:image/png;base64,'+response.data,
+                file1Name:'Attached',
+                validFile1:true,
+                imageSelector:false
+              });
+          }else if(imageCount==2){
+              this.setState({
+                file2: 'data:image/png;base64,'+response.data,
+                file2Name:'Attached',
+                validFile2:true,
+                imageSelector:false
+              });
+          }else if(imageCount==3){
+              this.setState({
+                file3: 'data:image/png;base64,'+response.data,
+                file3Name:'Attached',
+                validFile3:true,
+                imageSelector:false
+              });
+          }
+        }
+    });
+
+  }
+
+  openDrop(dropType){
+    if(dropType=='code')
+      this.setState({dropDown:true, dropItems:Utils.countryCode, currentDrop:'code'});
+    else if(dropType=='doc')
+      this.setState({dropDown:true, dropItems:docList, currentDrop:'doc'});
+  }
+
+  chooseDropItem(item){
+        if(this.state.currentDrop=='doc'){
+           this.setState({dropDown:false, docType:item.value});
+        }else if(this.state.currentDrop=='code'){
+           this.setState({dropDown:false, countryCode:item.value});
+        }
+    }
+
+  closeDrop(){
+      this.setState({dropDown:false});
+  }
+
+  selectedCountry(val){
+    this.setState({country:val.value, validCountry:true});
+  }
+
+  selectedCountryCode(val){
+    this.setState({countryCode:val.value, validCountryCode:true});
+  }
+
+
+
+  render() {
+    return (
+      <View style={Styles.body}>
+      <ImageBackground source={this.state.color} style={{flex:1}}>
+       <Header title={this.state.title} menuCheck="false" data={this.props} style={Styles.header}/>
+        <ProgressBar
+            title={this.state.loadingTitle}
+            message={this.state.loadingMessage}
+            visible={this.state.loading}
+            close={this.stopLoading}
+          />
+        <DropDown
+          closeDrop={this.closeDrop}
+          dropdown={this.state.dropDown}
+          choose={this.chooseDropItem}
+          items={this.state.dropItems}
+        />
+         <ScrollView style={{flex:0.8}} keyboardShouldPersistTaps={'always'}>
+          <View style={Styles.container}>
+              <View style={{marginVertical:10, flexDirection:'row'}}>
+                <Text style={Styles.textLabel}>Email Verified:</Text>
+                {this.state.emailVerified==true ? (
+                  <Text style={[Styles.textValue, {color:Utils.colorGreen, fontWeight:'bold'}]}>Yes</Text>
+                ):(
+                  <Text style={[Styles.textValue, {color:Utils.colorRed, fontWeight:'bold'}]}>No</Text>
+                )}
+              </View>
+              <View style={{marginVertical:10, flexDirection:'row'}}>
+                <Text style={Styles.textLabel}>Phone number Verified:</Text>
+                {this.state.phoneVerified==true ? (
+                  <Text style={[Styles.textValue, {color:Utils.colorGreen, fontWeight:'bold'}]}>Yes</Text>
+                ):(
+                  <Text style={[Styles.textValue, {color:Utils.colorRed, fontWeight:'bold'}]}>No</Text>
+                )}
+              </View>
+
+              {this.state.phoneVerified==false && ( 
+                <View>
+                  <Text style={Styles.textLabel}>Verify your phone number to active backup method, increase the reputation of your account and get access to more advertisements.Choose your country code and enter your phone number</Text>
+                  <View style={[{flex:1, flexDirection:'row', width:'100%', alignSelf:'center', alignItems:'center', justifyContent:'center', marginTop:10}]}>
+                <Text style={[{flex:0.9}]}>Location:</Text>
+                <View style={[this.state.validCountryCode==false ? Styles.countryViewError : Styles.countryView, { alignItems:'center', justifyContent:'center'}]}>
+                  <SearchableDropdown
+                            onItemSelect={(item) => {this.selectedCountryCode(item)}}
+                            onRemoveItem={(item) => {
+                              const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                              this.setState({ selectedItems: items });
+                            }}
+                            itemStyle={{
+                              padding: 10,
+                              marginTop: 2,
+                              backgroundColor:Utils.colorDarkBlue,
+                              borderColor: '#bbb',
+                              borderWidth: 1,
+                              borderRadius: 5,
+                            }}
+                            itemTextStyle={{color:Utils.colorWhite}}
+                            itemsContainerStyle={{ maxHeight: 140 }}
+                            items={Utils.countryCode}
+                            defaultIndex={0}
+                            resetValue={false}
+                            textInputProps={
+                              {
+                                placeholder: "Country Code",
+                                underlineColorAndroid: "transparent",
+                                style: {
+                                    paddingHorizontal:10,
+                                    // borderWidth: 1,
+                                    // borderColor: '#ccc',
+                                    // borderRadius: 5,
+                                    height:40,
+                                  },
+                                onTextChange: text => console.log(text)
+                              }
+                            }
+                            listProps={
+                              {
+                                nestedScrollEnabled: true,
+                              }
+                            }
+                        />
+                      </View>
+                  </View>
+                  <View style={{marginTop:20, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={Styles.textLabel}>Phone number:</Text>
+                    <TextInput 
+                      style={this.state.validPhone==false ? Styles.textValueInputError : Styles.textValueInput}
+                      value={this.state.phone}
+                      onChangeText={(phone)=>this.validatePhone(phone)}
+                      keyboardType={'number-pad'}
+                    />
+                  </View>
+                  <TouchableHighlight underlayColor='none' onPress={()=>this.sendOtp()}>
+                    <View style={Styles.submitButton}>
+                      <Text style={{fontSize:Utils.headSize}}>Send OTP</Text>
+                    </View>
+                  </TouchableHighlight>
+                </View>
+              )}
+
+              <View style={{marginVertical:10, flexDirection:'row'}}>
+                <Text style={Styles.textLabel}>Identity Verified:</Text>
+                {this.state.kycStatus=='VERIFIED' ? (
+                  <Text style={[Styles.textValue, {color:Utils.colorGreen, fontWeight:'bold'}]}>Yes</Text>
+                ):(
+                  <Text style={[Styles.textValue, {color:Utils.colorRed, fontWeight:'bold'}]}>{this.state.kycStatus}</Text>
+                )}
+              </View>
+              {this.state.identityVerified && (
+                <View style={{width:'100%'}}>
+                  <View style={{marginTop:20, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={Styles.textLabel}>First Name:</Text>
+                    <TextInput 
+                      style={this.state.validFName==false ? Styles.textValueInputError : Styles.textValueInput}
+                      value={this.state.fName}
+                      onChangeText={async(fName)=>{ await this.setState({fName:fName, validFName:true})}}
+                    />
+                  </View>
+                  <View style={{marginTop:10, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={Styles.textLabel}>Last Name:</Text>
+                    <TextInput
+                      style={this.state.validLName==false ? Styles.textValueInputError : Styles.textValueInput}
+                      value={this.state.lName}
+                      onChangeText={async(lName)=>{ await this.setState({lName:lName, validLName:true})}}
+                    />
+                  </View>
+                  <View style={{marginTop:10, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={[Styles.textLabel, {}]}>Date of Birth:</Text>
+                    <View style={this.state.validDob==false ? Styles.textValueInputError : Styles.textValueInput}>
+                      <DatePicker                  
+                        date={this.state.dob}
+                        style={{alignItems:'center', justifyContent:'center'}}
+                        mode="date"
+                        placeholder="select date"
+                        format="YYYY-MM-DD"
+                        confirmBtnText="Confirm"
+                        cancelBtnText="Cancel"
+                        maxDate={new Date()}
+                        customStyles={{
+                          dateIcon: {
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            marginLeft: 0
+                          },
+                          dateInput: {
+                            marginLeft: 36,
+                            borderColor:'transparent'
+                          }
+                        }}
+                        onDateChange={(date) => {this.setState({dob: date})}}
+                      />
+                    </View>
+                  </View>
+                  <View style={[{flex:1, flexDirection:'row', width:'100%', alignSelf:'center', alignItems:'center', justifyContent:'center', marginTop:10}]}>
+                    <Text style={[{flex:0.9}]}>Location:</Text>
+                    <View style={[this.state.validCountry==false ? Styles.countryViewError : Styles.countryView, {width:'50%', alignItems:'center', justifyContent:'center'}]}>
+                      <SearchableDropdown
+                                style={[this.validCountry ? Styles.countryView : Styles.countryViewError, {flex:1}]}
+                                onItemSelect={(item) => {this.selectedCountry(item)}}
+                                onRemoveItem={(item) => {
+                                  const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
+                                  this.setState({ selectedItems: items });
+                                }}
+                                itemStyle={{
+                                  padding: 10,
+                                  marginTop: 2,
+                                  backgroundColor:Utils.colorDarkBlue,
+                                  borderColor: '#bbb',
+                                  borderWidth: 1,
+                                  borderRadius: 5,
+                                }}
+                                itemTextStyle={{color:Utils.colorWhite}}
+                                itemsContainerStyle={{ maxHeight: 140 }}
+                                items={Utils.country}
+                                defaultIndex={0}
+                                resetValue={false}
+                                textInputProps={
+                                  {
+                                    placeholder: "Country",
+                                    underlineColorAndroid: "transparent",
+                                    style: {
+                                        paddingHorizontal:10,
+                                        // borderWidth: 1,
+                                        // borderColor: '#ccc',
+                                        // borderRadius: 5,
+                                        height:40,
+                                      },
+                                    onTextChange: text => console.log(text)
+                                  }
+                                }
+                                listProps={
+                                  {
+                                    nestedScrollEnabled: true,
+                                  }
+                                }
+                            />
+                          </View>
+                      </View>
+                  <View style={{marginTop:10, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={Styles.textLabel}>Identity Document:</Text>
+                    <View style={this.state.validDocType==false ? Styles.textValueInputError : Styles.textValueInput}>
+                    <TouchableHighlight onPress={()=>this.openDrop('doc')} underlayColor='none'>
+                      <View style={{flexDirection:'row'}}>
+                        <Text style={this.state.docType=='Select Doc. Type' ? Styles.placeholder : Styles.dropItemSelected}>{this.state.docType}</Text>
+                        <Icon name='sort-down' style={Styles.dropIcon}/>
+                      </View>
+                    </TouchableHighlight>
+                    </View>    
+                  </View>
+                  <View style={{marginTop:10, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={Styles.textLabel}>Document ID:</Text>
+                    <TextInput 
+                      style={this.state.validDocId==false ? Styles.textValueInputError : Styles.textValueInput}
+                      value={this.state.docId}
+                      onChangeText={(docId)=>this.setState({docId:docId, validDocId:true})}
+                    />
+                  </View>
+                  <Text style={[Styles.textLabel, {marginTop:15}]}>* Only Jpeg, .png and jpg are acceptable:</Text>
+                  
+                  <TouchableHighlight underlayColor='none' onPress={()=>this.selectImage(1)}>
+                    <View style={this.state.validFile1==false ? Styles.fileViewError : Styles.fileView}>
+                      <Text style={{fontSize:Utils.subHeadSize, color:Utils.colorDarkGray}}>{this.state.file1Name}</Text>
+                      {this.state.file1!='' ? (
+                        <Icon name='close' style={Styles.rightIcon} onPress={()=>this.resetImage(1)}/>
+                      ):(
+                        <Icon name='paperclip' style={Styles.rightIcon} />
+                      )
+                    }
+                    </View>
+                  </TouchableHighlight>
+
+                  <TouchableHighlight underlayColor='none' onPress={()=>this.selectImage(2)}>
+                    <View style={this.state.validFile2==false ? Styles.fileViewError : Styles.fileView}>
+                      <Text style={{fontSize:Utils.subHeadSize, color:Utils.colorDarkGray}}>{this.state.file2Name}</Text>
+                      {this.state.file2!='' ? (
+                        <Icon name='close' style={Styles.rightIcon} onPress={()=>this.resetImage(2)}/>
+                      ):(
+                        <Icon name='paperclip' style={Styles.rightIcon} />
+                      )}
+                    </View>
+                  </TouchableHighlight>
+    
+                  <TouchableHighlight underlayColor='none' onPress={()=>this.selectImage(3)}>
+                    <View style={this.state.validFile3==false ? Styles.fileViewError : Styles.fileView}>
+                      <Text style={{fontSize:Utils.subHeadSize, color:Utils.colorDarkGray}}>{this.state.file3Name}</Text>
+                      {this.state.file3!='' ? (
+                        <Icon name='close' style={Styles.rightIcon} onPress={()=>this.resetImage(3)}/>
+                      ):(
+                        <Icon name='paperclip' style={Styles.rightIcon} />
+                      )}
+                    </View>
+                  </TouchableHighlight>
+
+                  <View style={{marginTop:15, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={Styles.textLabel}>City:</Text>
+                    <TextInput 
+                      style={this.state.validCity==false ? Styles.textValueInputError : Styles.textValueInput}
+                      value={this.state.city}
+                      onChangeText={(city)=>this.setState({city:city, validCity:true})}
+                    />
+                  </View>
+                  <Text style={[Styles.textLabel, {marginTop:15, marginBottom:10}]}>Address:</Text>
+                  <TextInput 
+                    style={this.state.validAddress==false ? Styles.textValueInputError : Styles.textValueInput}
+                    value={this.state.address}
+                    onChangeText={(address)=>this.setState({address:address, validAddress:true})}
+                  />
+                  <View style={{marginTop:15, flexDirection:'row', alignItems:'center'}}>
+                    <Text style={Styles.textLabel}>Post/Zip code:</Text>
+                    <TextInput 
+                      style={this.state.validPinCode==false ? Styles.textValueInputError : Styles.textValueInput}
+                      value={this.state.pinCode}
+                      onChangeText={(pinCode)=>{
+                        this.setState({pinCode:pinCode});
+                        if(pinCode.length>5){
+                          this.setState({validPinCode:true});
+                        }else
+                          this.setState({validPinCode:false});
+                      }}
+                    />
+                  </View>
+                  <TouchableHighlight underlayColor='none' onPress={()=>this.verification()}>
+                    <View style={Styles.submitButton}>
+                      <Text style={{fontSize:Utils.headSize}}>Submit</Text>
+                    </View>
+                  </TouchableHighlight>
+              </View>
+            )}
+            </View>
+        </ScrollView>
+        {this.state.imageSelector==true && (
+         <View>
+           <Modal style={CommonCss.dialogue}
+            isVisible={this.state.imageSelector}
+            transparent={true}
+            animationType={"fade"}
+            onRequestClose={()=>this.setState({imageSelector:false})}
+            >
+             <View style={CommonCss.dialogue}>
+              <View style={CommonCss.dialogueContainer}>
+                  <Text style={CommonCss.dialogCamera} onPress={()=>this.launchCamera(this.state.imageCount)}>Camera</Text>
+                  <Image style={{width:280, height:1, backgroundColor:Utils.colorGray}} />
+                  <Text style={CommonCss.dialogCamera} onPress={()=>this.launchImageLibrary(this.state.imageCount)}>Gallery</Text>
+                  <Image style={{width:280, height:1, backgroundColor:Utils.colorGray}} />
+                  <Text style={CommonCss.dialogueCancel}
+                    onPress={()=>this.setState({imageSelector:!this.state.imageSelector})}
+                  >Close</Text>
+                </View>
+              </View>
+            </Modal>
+         </View>
+        )}
+        {this.state.otpScreen && ( 
+          <Modal style={[CommonCss.dialogue]}
+            isVisible={this.state.otpScreen}
+            transparent={true}
+            animationType={"fade"}
+            onRequestClose={()=>this.setState({otpScreen:false})}
+            >
+             <View style={CommonCss.dialogue}>
+              <View style={[Styles.dialogueContainer, {marginTop:-80}]}>
+                  <Icon name="close" style={Styles.close} onPress={()=>this.setState({otpScreen:!this.state.otpScreen})}/>
+                  <Text style={Styles.phoneVeriLine}>Phone number verification</Text>
+                  <Text style={{fontSize:Utils.headSize, fontWeight:'bold', marginTop:30}}>Enter Verification Code</Text>
+                  <Text style={{fontSize:Utils.textSize, marginTop:20, marginHorizontal:10, textAlign:'center'}}>A text message with code was sent to your phone</Text>
+                  <View style={{flexDirection:'row', marginTop:30}}>
+                    <TextInput
+                      style={Styles.otpBox}
+                      placeholder='*'
+                       returnKeyType = {"next"}
+                       autoFocus = {true}
+                       maxLength={1}
+                       value={this.state.otp1}
+                       onChangeText={(text) => { this.setState({otp1:text}); if(text!=''){this.text2.focus();}}}
+                       ref={(input) => { this.text1 = input;}}
+                       keyboardType={'numeric'}
+                      />
+                    <TextInput
+                      style={Styles.otpBox}
+                      placeholder='*'
+                       returnKeyType = {"next"}
+                       maxLength={1}
+                       value={this.state.otp2}
+                       onChangeText={(text) => {this.setState({otp2:text}); if(text==''){this.text1.focus();} else{this.text3.focus();}}}
+                       ref={(input) => { this.text2 = input;}}
+                       keyboardType={'numeric'}
+                      />
+                    <TextInput
+                      style={Styles.otpBox}
+                      placeholder='*'
+                       returnKeyType = {"next"}
+                       maxLength={1}
+                       value={this.state.otp3}
+                       onChangeText={(text) => {this.setState({otp3:text}); if(text==''){this.text2.focus();} else {this.text4.focus();}}}
+                       ref={(input) => { this.text3 = input;}}
+                       keyboardType={'numeric'}
+                      />
+                    <TextInput
+                      style={Styles.otpBox}
+                      placeholder='*'
+                       maxLength={1}
+                       value={this.state.otp4}
+                       onChangeText={(text) => {this.setState({otp4:text}); if(text==''){this.text3.focus();}}}
+                       ref={(input) => { this.text4 = input;}}
+                       keyboardType={'number-pad'}
+                      />
+                  </View>
+                  <View style={{flexDirection:'row'}}>
+                    <TouchableHighlight underlayColor='none' onPress={()=>this.verifyOtp()} style={Styles.phoneVeriButton}>
+                        <Text>Submit</Text>
+                    </TouchableHighlight>
+                    <TouchableHighlight underlayColor='none' onPress={()=>this.sendOtp()} style={Styles.phoneVeriButton}>
+                      <Text>Resend</Text>
+                    </TouchableHighlight>
+                  </View>
+              </View>
+            </View>
+           </Modal>
+          )}
+        </ImageBackground>
+      </View>
+    );
+  }
+}

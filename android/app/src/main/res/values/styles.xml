@@ -1,0 +1,20 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:textColor">#000000</item>
+    </style>
+    <color name="white">#FFF</color>
+
+    <style  name="ZendeskTheme"  parent="Theme.MaterialComponents.Light">
+
+        <item  name="colorPrimary">#009cec</item>
+
+        <item  name="colorPrimaryDark">#009cec</item>
+
+        <item  name="colorAccent">#009cec</item>
+
+    </style>
+
+</resources>

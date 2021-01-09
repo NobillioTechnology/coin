@@ -1,0 +1,148 @@
+import { StyleSheet } from 'react-native';
+import Utils from '../Utils';
+
+export default StyleSheet.create({
+body:{
+	flex:1,
+},
+header:{
+	flex:0.1
+},
+footer:{
+	flex:0.1
+},
+container:{
+	width:'100%'
+},
+secondHeader:{
+	flexDirection:'row',
+	width:'100%',
+	minHeight:45,
+	alignItems:'center',
+	backgroundColor:Utils.colorPrimary,
+	paddingLeft:20,
+	paddingRight:20
+},
+backIcon:{
+	fontSize:20,
+	color:Utils.colorWhite,
+	flex:0.1
+},
+secondHeaderTitle:{
+	fontSize:18,
+	color:Utils.colorWhite,
+	textAlign:'center',
+	alignSelf:'center',
+	flex:0.9,
+},
+searchBox:{
+	fontSize:20,
+	color:Utils.colorWhite,
+	textAlign:'center',
+	alignSelf:'center',
+	flex:0.9,
+	fontStyle:'italic',
+	height:'100%'	
+},
+secondHeaderSearch:{
+	flex:0.1,
+	fontSize:20,
+	color:Utils.colorWhite
+},
+footer:{
+		flex:0.2
+},
+itemBody:{
+	backgroundColor:Utils.colorWhite,
+},
+itemBodyUnread:{
+	backgroundColor:Utils.colorPrimary,
+},
+itemBodyUnreadLast:{
+	backgroundColor:Utils.colorPrimary,
+	borderBottomEndRadius:30,
+	borderBottomStartRadius:30
+},
+imageUri:{
+	width:40,
+	height:40,
+	flex:0.08,
+	alignSelf:'flex-end',
+	textAlign:'right',
+	paddingRight:10,
+	color:Utils.colorPrimary,
+	fontSize:18
+},
+itemDetails:{
+	flex:0.7,
+	marginLeft:5
+},
+itemName:{
+	color:Utils.colorPrimary,
+	fontSize:14,
+},
+itemNameUnread:{
+	color:Utils.colorWhite,
+	fontSize:12
+},
+itemMessage:{
+	color:Utils.colorBlack,
+	fontSize:12,
+	marginTop:5
+},
+itemMessageUnread:{
+	color:Utils.colorWhite,
+	fontSize:14,
+	marginTop:5
+},
+itemTimeView:{
+	flex:0.3,
+},
+itemTime:{
+	color:Utils.colorGray,
+	fontSize:12,
+	textAlign:'right'
+},
+itemTimeUnread:{
+	color:Utils.colorWhite,
+	fontSize:12
+},
+itemUnreadCount:{
+	width:25,
+	height:25,
+	marginTop:5,
+	color:Utils.colorWhite,
+	backgroundColor:Utils.colorGreen,
+	textAlign:'center',
+	borderRadius:90,
+	paddingTop:2
+},
+	plusMsg:{
+		width:45,
+		height:45,
+		backgroundColor:Utils.colorDarkBlue,
+		borderRadius:90,
+		position:'absolute',
+		right:15,
+		bottom:60,
+		alignItems:'center',
+		justifyContent:'center',
+		borderWidth:0.5,
+		borderColor:Utils.colorPrimary
+	},
+	plusMsgIcon:{
+		color:Utils.colorPrimary,
+		width:23,
+		height:23
+	},
+	shadow:{
+			shadowColor: Utils.colorPrimary,
+			shadowOffset: {
+				width: 0,
+				height: 9,
+			},
+			shadowOpacity: 1,
+			shadowRadius: 11.95,
+			elevation: 10,
+	},
+})
