@@ -28,7 +28,7 @@ export default class Home extends Component {
         loadingTitle:'Please Wait',
         loadingMessage:"Loading...",
         receivingAddress:'', validAddress:true, validAmount:true, validAmountBtc:true, validDesc:true,
-        amountBtc:'', amount:'0.00', desc:'',
+        amountBtc:'', amount:'', desc:'',
         scannerView: false, flashMode: false, zoom: 0.2, fee:'', dropDown:false, loaderA:false, loaderF:false,
         currency:'', currencySelector:false, currencyData:Utils.currency, validCurrency:true,
         otpView:false, otp:'', validOtp:true,
@@ -116,7 +116,7 @@ export default class Home extends Component {
   priceEquation=async(btc)=>{
       await this.setState({amountBtc:btc, validAmountBtc:true, loaderA:true, amount:''});
       if(this.state.currency==''){
-        this.setState({loaderA:false, validCurrency:false, amount:'0.00'});
+        this.setState({loaderA:false, validCurrency:false, amount:''});
         return null;
       }
 
@@ -131,10 +131,11 @@ export default class Home extends Component {
                 this.setState({loaderA:false});
                 if(json.responseCode==200){
                   const data = json.result
-                  this.setState({
-                     amount:''+data.price.toFixed(2)
-                  }) 
-                }else{
+                  if(data.price!=0)
+                    this.setState({
+                      amount:''+data.price.toFixed(2)
+                    }) 
+                  }else{
                   this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
                 }
             })
@@ -318,6 +319,36 @@ export default class Home extends Component {
           });
   }
 
+  handleAmountChange=async(txt)=>{
+    this.setState({amount:txt});
+    if(this.state.currency!=''){
+      this.getBTC(txt);
+    }else{
+      this.setState({validCurrency:false});
+    }
+  }
+
+  getBTC=async(amount)=>{
+
+		var body = JSON.stringify({
+			"localCurrency":this.state.currency,
+			"margin": ""
+		  });
+		await WebApi.postApi_user("priceEquationWithMargin", body)
+      .then(response => response.json())
+      .then(json => {
+        console.log('response from getBTC====>', json);
+			  if (json.responseCode == 200) {
+          var priceNow = json.result.price;
+          var amountBtc = (amount/priceNow).toFixed(8);
+          console.log('BTC after calculation', amountBtc);
+					this.setState({amountBtc:amountBtc+''});
+        }else{
+          this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
+        }
+			})
+  }
+
   render() {
 
     return (
@@ -406,7 +437,12 @@ export default class Home extends Component {
                 {this.state.loaderA && (
                   <ActivityIndicator size={'small'} />
                 )}
-                <Text style={{fontSize:Utils.subHeadSize}}>{this.refineBtc(this.state.amount)}</Text>
+                <TextInput 
+                  style={{fontSize:Utils.subHeadSize, width:'100%', height:50}}
+                  value={this.refineBtc(this.state.amount)}
+                  placeholder={"Enter Amount"}
+                  onChangeText={(txt)=>this.handleAmountChange(txt)}
+                  />
                 </View>
                 <View style={this.state.validCurrency ? Styles.pickerView : Styles.pickerViewError}>
                   <SearchableDropdown

@@ -10,10 +10,7 @@ import WebApi from '../WebApi';
 import ProgressBar from '../../pages/ProgressBar';
 import {socket} from '../../Common/WebApi';
 
-
 import styles from "./styles";
-
-
 
 export default class CustomDrawerNavigator extends React.Component {
 
@@ -51,31 +48,13 @@ export default class CustomDrawerNavigator extends React.Component {
 		  this.getData();
 	}
 
-	componentDidUpdate=async()=>{
-		// if(!this.state.isWaiting){
-		// 	setTimeout(()=>{
-		// 		this.getData();
-		// 		this.setState({isWaiting:false});
-		// 	}, 10000);
-		// 	this.setState({isWaiting:true});
-		//   }
-		  await socket.connect();
-
-		  const profilePic = await AsyncStorage.getItem(Utils.profilePic);
-		  if(this.state.profilePic!=profilePic && profilePic!=null)
-			  	this.setState({profilePic:{uri:profilePic}});
-
-			const userName = await AsyncStorage.getItem(Utils.userName);
-			if(this.state.userName!=userName)
-				this.setState({userName:userName});
-		}
-
 	getData=async()=>{
 		const profilePic = await AsyncStorage.getItem(Utils.profilePic);
 		const balance = await AsyncStorage.getItem(Utils.balance);
 		const userName = await AsyncStorage.getItem(Utils.userName);
-		this.setState({profilePic:{uri:profilePic}, balance:balance, userName:userName});
-		// console.log('getting Data for Drawer======>');
+		if(this.state.userName!=userName)
+			this.setState({profilePic:{uri:profilePic}, balance:balance, userName:userName});
+		console.log('getting Data for Drawer======>', userName);
 	}
 
 	uploadImage=async()=>{
@@ -146,6 +125,7 @@ export default class CustomDrawerNavigator extends React.Component {
 
 	render(){
 		const props = this.props;
+		this.getData();
 		return(
 			<View style={[styles.container]}>
 				<ScrollView>

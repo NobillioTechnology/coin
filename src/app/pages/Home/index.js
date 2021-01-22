@@ -105,8 +105,9 @@ export default class Home extends Component {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButtonClick);
      this.setState({_id:await AsyncStorage.getItem(Utils._id), receiveQR:await AsyncStorage.getItem(Utils.receiveQr), receiveAddress:await AsyncStorage.getItem(Utils.receiveWA).toString()});
       // console.log('id from getProfile====>', this.state._id);
-     this.getWalletAddress();
+     await this.getWalletAddress();
      this.updateLastActive();
+     this.getApis();
         // alert(JSON.stringify(FCMToken));
         // console.log('FCM TOKEN====>', FCMToken);  
   }
@@ -162,6 +163,7 @@ export default class Home extends Component {
     }
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButtonClick);
     this.getWalletAddress();
+    this.setState({updatedData:true});
   }
 
   componentDidUpdate=async()=>{
@@ -169,7 +171,8 @@ export default class Home extends Component {
         setTimeout(async()=>{
           // this.getWalletAddress();
       const color = await AsyncStorage.getItem(Utils.colorUniversal);
-      console.log(color);
+      const userName = await AsyncStorage.getItem(Utils.userName);
+      console.log(color, userName);
       if(color!==null){
         if(color=='bg')
           this.setState({color:this.state.img[0]});
@@ -218,7 +221,40 @@ export default class Home extends Component {
       this.setState({loading:false});
   }
    receiveBC(){
-     this.setState({receiveBC:true});
+    this.setState({receiveBC:true});
+    this.getApis();
+   }
+
+   getApis=async()=>{
+    await WebApi.getApi_user('transferToAdminAccount/'+this.state.receiveAddress+'/'+this.state._id)
+    .then(response => response.json())
+      .then(json => {
+          console.log('Response from trasfer to admin===>', json);
+          if(json.responseCode==200){
+           
+          }else{
+            this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
+          }
+      })
+      .catch(error => {
+          console.log('error==>' , error)
+          this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error});
+      });
+
+  await WebApi.getApi_user('deposits_save/'+this.state.receiveAddress+'/'+this.state._id)
+  .then(response => response.json())
+    .then(json => {
+        console.log('Response from deposite save===>', json);
+        if(json.responseCode==200){
+
+        }else{
+          this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
+        }
+    })
+    .catch(error => {
+        console.log('error==>' , error)
+        this.setState({loading:true, loadingTitle:'Alert', loadingMessage:'Oops! '+error});
+    });        
    }
 
    // trans=async(text)=>{
@@ -274,9 +310,6 @@ export default class Home extends Component {
                               var walletAdd = '';
                               if(typeof(data.btc.addresses[0].addr)==='string')
                               walletAdd = data.btc.addresses[0].addr;
-                            AsyncStorage.setItem(Utils.userName, data.user_name);
-                            AsyncStorage.setItem(Utils.profilePic, data.profilePic);
-                            AsyncStorage.setItem(Utils.balance, data.btc.total.toFixed(8).toString());
                             AsyncStorage.setItem(Utils.receiveQr, qr);
                             AsyncStorage.setItem(Utils.receiveWA, walletAdd);
                             this.setState({
@@ -322,7 +355,7 @@ export default class Home extends Component {
   }
 
   render() {
-   // if(this.props.navigation.state.key=='Icon')
+
     return (
       <View style={Styles.body}>
       <ImageBackground source={this.state.color} style={{flex:1}}>
@@ -395,6 +428,3 @@ export default class Home extends Component {
     );
   }
 }
-
-
-           // <Image source={require('../../assets/img/wallet.png')} style={Styles.plusMsgIcon}/>

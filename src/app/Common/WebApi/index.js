@@ -88,9 +88,10 @@ export default class WebApi extends Component {
 	}
 
 	static getApi_user=async(url)=>{
-		console.log(url);
+		console.log(baseUrl+user+url);
 		const token= await AsyncStorage.getItem(Utils.token);
 		const _id = await AsyncStorage.getItem(Utils._id);
+		// console.log(_id, token);
 		return fetch(baseUrl+user+url, {
 			method:'GET',
 	 	    headers: {

@@ -296,6 +296,7 @@ export default class Home extends Component {
                       <View style={[Styles.editText, {alignItems:'center'}]}>
                         <SearchableDropdown
                                 style={{}}
+                                selectedItems={this.state.currency}
                                 onItemSelect={(item) => {this.selectedCurrency(item)}}
                                 containerStyle={{ padding: 5 }}
                                 onRemoveItem={(item) => {
@@ -342,6 +343,7 @@ export default class Home extends Component {
                       <View style={[Styles.editText, {alignItems:'center', marginRight:5, flex:0.5}]}>
                        <SearchableDropdown
                             containerStyle={{ padding: 5 }}
+                            selectedItems={this.state.country}
                             onItemSelect={(item) => {this.selectedCountry(item)}}
                             onRemoveItem={(item) => {
                               const items = this.state.selectedItems.filter((sitem) => sitem.id !== item.id);
@@ -383,6 +385,7 @@ export default class Home extends Component {
                       </View>
                       <View style={[Styles.editText, {alignItems:'center'}]}>
                           <SearchableDropdown
+                            selectedItems={this.state.offer}
                             onItemSelect={(item) => {this.selectedOffer(item)}}
                             containerStyle={{ padding: 5 }}
                             onRemoveItem={(item) => {

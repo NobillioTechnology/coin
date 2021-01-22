@@ -47,11 +47,9 @@ export default class Home extends Component {
       
                 for(let i =0; i<length; i++)
                 {
-                  // console.log('link =>', data.item[i].link[0]);
-
                       parseString(data.item[i].description[0], function(err, result1){
-                      dataA.push({'title': data.item[i].title[0], 'link': data.item[i].link[0], img:result1.p.img[0].$.src}); 
-                      
+                        console.log('link =>', result1);
+                      dataA.push({'title': data.item[i].title[0], 'link': data.item[i].link[0], img:result1.img.$.src}); 
                     })
                 }
               })

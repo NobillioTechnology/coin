@@ -483,6 +483,7 @@ export default class Home extends Component {
                             textInputProps={
                               {
                                 placeholder: "Country",
+                                value:this.state.country,
                                 underlineColorAndroid: "transparent",
                                 style: {
                                     paddingHorizontal:10,
@@ -492,7 +493,7 @@ export default class Home extends Component {
                                     height:40,
                                     textAlign:'center'
                                   },
-                                onTextChange: text => console.log(text)
+                                onTextChange: text => this.setState({country:text})
                               }
                             }
                             listProps={
@@ -563,6 +564,7 @@ export default class Home extends Component {
                             textInputProps={
                               {
                                 placeholder: "Payment Method",
+                                value:this.state.paymentModeLabel,
                                 underlineColorAndroid: "transparent",
                                 style: {
                                     paddingHorizontal:10,
@@ -572,7 +574,7 @@ export default class Home extends Component {
                                     height:40,
                                     textAlign:'center'
                                   },
-                                onTextChange: text => console.log(text)
+                                onTextChange: text => this.setState({paymentModeLabel:text})
                               }
                             }
                             listProps={
@@ -609,6 +611,7 @@ export default class Home extends Component {
                             textInputProps={
                               {
                                 placeholder: "Currency",
+                                value:this.state.currency,
                                 underlineColorAndroid: "transparent",
                                 style: {
                                     paddingHorizontal:10,
@@ -618,7 +621,7 @@ export default class Home extends Component {
                                     height:40,
                                     textAlign:'center'
                                   },
-                                onTextChange: text => console.log(text)
+                                onTextChange: text => this.setState({currency:text})
                               }
                             }
                             listProps={

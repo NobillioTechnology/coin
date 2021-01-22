@@ -473,7 +473,9 @@ export default class Home extends Component {
                         if(json.responseCode==200){
                           console.log('response message=====>', json.responseMessage);
                           this.setState({loading:true, loadingTitle:'Alert', loadingMessage:''+json.responseMessage, detailsTab:false});
-                          this.props.navigation.goBack(null);
+                          setTimeout(()=>{
+                            this.props.navigation.goBack(null);
+                          }, 2000);
                         }else{
                           this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
                         }
@@ -585,6 +587,7 @@ export default class Home extends Component {
                             textInputProps={
                               {
                                 placeholder: "Country",
+                                value:this.state.country,
                                 underlineColorAndroid: "transparent",
                                 style: {
                                     paddingHorizontal:10,
@@ -594,7 +597,7 @@ export default class Home extends Component {
                                     height:40,
                                     textAlign:'center'
                                   },
-                                onTextChange: text => console.log(text)
+                                onTextChange: text => this.setState({country:text})
                               }
                             }
                             listProps={
@@ -650,6 +653,7 @@ export default class Home extends Component {
                             textInputProps={
                               {
                                 placeholder: this.state.paymentModeLabel,
+                                value:this.state.paymentModeLabel,
                                 underlineColorAndroid: "transparent",
                                 style: {
                                     paddingHorizontal:10,
@@ -659,7 +663,7 @@ export default class Home extends Component {
                                     height:40,
                                     textAlign:'center'
                                   },
-                                onTextChange: text => console.log(text)
+                                onTextChange: text => this.setState({paymentModeLabel:text})
                               }
                             }
                             listProps={
@@ -697,6 +701,7 @@ export default class Home extends Component {
                             textInputProps={
                               {
                                 placeholder: "Currency",
+                                value:this.state.currency,
                                 underlineColorAndroid: "transparent",
                                 style: {
                                     paddingHorizontal:10,
@@ -706,7 +711,7 @@ export default class Home extends Component {
                                     height:40,
                                     textAlign:'center'
                                   },
-                                onTextChange: text => console.log(text)
+                                onTextChange: text => this.setState({currency:text})
                               }
                             }
                             listProps={

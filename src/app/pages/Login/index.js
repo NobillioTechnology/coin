@@ -100,15 +100,15 @@ export default class Login extends Component {
          this.setState({loading:false});
            console.log('Response from logout===>', json);
               if(json.responseCode==200){
-                  this.props.navigation.navigate('Register');
-                  AsyncStorage.removeItem(Utils._id);
-                  AsyncStorage.removeItem(Utils.token);
-                  AsyncStorage.removeItem(Utils.userName);
-                  AsyncStorage.removeItem(Utils.receiveWA);
-                  AsyncStorage.removeItem(Utils.receiveQr);
-                  AsyncStorage.removeItem(Utils.balance);
-                  AsyncStorage.removeItem(Utils.profilePic);
-                  
+                AsyncStorage.clear();
+                this.props.navigation.navigate('Register');
+                  // AsyncStorage.removeItem(Utils._id);
+                  // AsyncStorage.removeItem(Utils.token);
+                  // AsyncStorage.removeItem(Utils.userName);
+                  // AsyncStorage.removeItem(Utils.receiveWA);
+                  // AsyncStorage.removeItem(Utils.receiveQr);
+                  // AsyncStorage.removeItem(Utils.balance);
+                  // AsyncStorage.removeItem(Utils.profilePic);
               }else{
                 this.setState({loading:true, loadingTitle:'Alert', loadingMessage:json.responseMessage});
               }
@@ -218,7 +218,7 @@ export default class Login extends Component {
      getProfile=async()=>{
           await WebApi.postApi_user('userProfile', JSON.stringify({_id:this.state._id}))
           .then(response => response.json())
-          .then(json => {
+          .then(async json => {
              this.setState({loading:false});
                console.log('Response from Login===>', json);
                   if(json.responseCode==200){
@@ -229,11 +229,14 @@ export default class Login extends Component {
                       var walletAdd = '';
                       if(typeof(data.btc.addresses[0].addr)==='string')
                       walletAdd = data.btc.addresses[0].addr;
-                    AsyncStorage.setItem(Utils.userName, data.user_name);
-                    AsyncStorage.setItem(Utils.profilePic, data.profilePic);
-                    AsyncStorage.setItem(Utils.balance, data.btc.total.toFixed(8).toString());
-                    AsyncStorage.setItem(Utils.receiveQr, qr);
-                    AsyncStorage.setItem(Utils.receiveWA, walletAdd);
+                      console.log('username after login====>', data.user_name);
+                    await AsyncStorage.setItem(Utils.userName, data.user_name);
+                    await AsyncStorage.setItem(Utils.profilePic, data.profilePic);
+                    await AsyncStorage.setItem(Utils.balance, data.btc.total.toFixed(8).toString());
+                    await AsyncStorage.setItem(Utils.receiveQr, qr);
+                    await AsyncStorage.setItem(Utils.receiveWA, walletAdd);
+                    const userName = await AsyncStorage.getItem(Utils.userName);
+                    console.log('user name from storage after login=====>', userName);
                     this.props.navigation.navigate('Home', {'update':true});
                     }
                 })
